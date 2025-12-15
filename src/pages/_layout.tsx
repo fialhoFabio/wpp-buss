@@ -32,7 +32,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
               FB.init({
                 appId            : '${process.env.FB_APP_ID}',
                 autoLogAppEvents: true,
-                xfbml            : true,
+                xfbml            : false,
                 version          : 'v24.0'
               });
             };

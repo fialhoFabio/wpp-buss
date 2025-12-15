@@ -53,7 +53,7 @@ export const FacebookLoader = () => {
     if (FB) {
       FB.login((res) => console.log('FB login: ', res), {
         response_type: 'code',
-        override_default_response_type: true,
+        // override_default_response_type: true,
         extras: {
           config_id: "1506335160598965",
           setup: {},
