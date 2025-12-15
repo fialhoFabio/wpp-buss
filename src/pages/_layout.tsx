@@ -40,7 +40,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
         }}
       />
       {/* <script async defer crossOrigin="anonymous" src={"https://connect.facebook.net/" + process.env.FB_LANG + "/sdk.js"} /> */}
-      <script async defer crossOrigin="anonymous" src={"https://connect.facebook.net/" + process.env.FB_LANG + "/sdk/debug.js"} />
+      <script async defer crossOrigin="anonymous" src={"https://connect.facebook.net/" + import.meta.env.WAKU_PUBLIC_FB_LANG + "/sdk/debug.js"} />
       {/* End Facebook SDK Integration */}
 
       <Header />
