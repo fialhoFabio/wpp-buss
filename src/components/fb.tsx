@@ -24,16 +24,16 @@ export const FacebookLoader = () => {
   }
   function loginOnFacebook() {
     if (FB) {
-      FB.login(function(response: any) {
-        if (response.authResponse) {
-          console.log('Welcome!  Fetching your information.... ');
-          FB.api('/me',function(response: any) {
-            console.log('Good to see you, ' + response.name + '.');
-          });
+      FB.login(function(response) {
+      if (response.authResponse) {
+        console.log('Welcome!  Fetching your information.... ');
+        FB.api('/me', function(response) {
+          console.log('Good to see you, ' + response.name + '.');
+        });
         } else {
-          console.log('User cancelled login or did not fully authorize.');
+        console.log('User cancelled login or did not fully authorize.');
         }
-      });
+    }, {scope: 'whatsapp_business_messaging'});
     } else {
       console.log('Facebook SDK not loaded yet.');
     }
