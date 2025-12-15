@@ -51,7 +51,7 @@ export const FacebookLoader = () => {
   }
   function loginOnFacebook() {
     if (FB) {
-      FB.login((res) => console.log('FB login: ' + res), {
+      FB.login((res) => console.log('FB login: ', res), {
         response_type: 'code',
         override_default_response_type: true,
         extras: {
