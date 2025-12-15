@@ -52,10 +52,10 @@ export const FacebookLoader = () => {
   function loginOnFacebook() {
     if (FB) {
       FB.login((res) => console.log('FB login: ', res), {
-        config_id: "1506335160598965",
         response_type: 'code',
         override_default_response_type: true,
         extras: {
+          config_id: "1506335160598965",
           setup: {},
         },
         scope: 'whatsapp_business_messaging,whatsapp_business_management',
