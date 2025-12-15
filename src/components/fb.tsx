@@ -56,7 +56,24 @@ export const FacebookLoader = () => {
         response_type: 'code',
         override_default_response_type: true,
         extras: {
-          setup: {},
+          setup: {
+            business: {
+              // Business portfolio data goes here
+              name: "Mdmed alerts",
+              email: null,
+              website: null,
+              country: "BR",
+            },
+            preVerifiedPhone: {
+              // Pre-verified phone number IDs go here
+            },
+            phone: {
+              // Phone number profile data goes here
+            },
+            whatsAppBusinessAccount: {
+              // WABA IDs go here
+            }
+          },
         },
         // scope: 'whatsapp_business_messaging,whatsapp_business_management',
       });
