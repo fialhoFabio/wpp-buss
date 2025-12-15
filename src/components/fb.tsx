@@ -52,7 +52,7 @@ export const FacebookLoader = () => {
   }
   function loginOnFacebook() {
     console.log({
-        config_id: import.meta.env.WAKU_PUBLIC_FB_CONFIG_ID || '',
+        // config_id: import.meta.env.WAKU_PUBLIC_FB_CONFIG_ID || '',
         response_type: 'code',
         override_default_response_type: true,
         extras: {
