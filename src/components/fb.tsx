@@ -51,7 +51,15 @@ export const FacebookLoader = () => {
     }
   }
   function loginOnFacebook() {
-    console.log(import.meta.env.WAKU_PUBLIC_FB_CONFIG_ID);
+    console.log({
+        config_id: import.meta.env.WAKU_PUBLIC_FB_CONFIG_ID || '',
+        response_type: 'code',
+        override_default_response_type: true,
+        extras: {
+          setup: {},
+        },
+        scope: 'whatsapp_business_messaging,whatsapp_business_management',
+      });
     if (FB) {
       FB.login((res) => {
         console.log('FB login: ', res);
