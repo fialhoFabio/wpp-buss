@@ -58,20 +58,20 @@ export const FacebookLoader = () => {
           config_id: import.meta.env.WAKU_PUBLIC_FB_CONFIG_ID || '',
           setup: {},
         },
-        scope: 'whatsapp_business_messaging,whatsapp_business_management',
+        // scope: 'whatsapp_business_messaging,whatsapp_business_management',
       });
     if (FB) {
       FB.login((res) => {
         console.log('FB login: ', res);
         set_wb_code(res.authResponse?.code);
       }, {
-        config_id: import.meta.env.WAKU_PUBLIC_FB_CONFIG_ID || '',
         response_type: 'code',
         override_default_response_type: true,
         extras: {
+          config_id: import.meta.env.WAKU_PUBLIC_FB_CONFIG_ID || '',
           setup: {},
         },
-        scope: 'whatsapp_business_messaging,whatsapp_business_management',
+        // scope: 'whatsapp_business_messaging,whatsapp_business_management',
       });
     } else {
       console.log('Facebook SDK not loaded yet.');
