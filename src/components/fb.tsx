@@ -36,7 +36,7 @@ export const FacebookLoader = () => {
         } else {
         console.log('User cancelled login or did not fully authorize.');
         }
-    }, {scope: 'whatsapp_business_messaging'});
+    }, {scope: 'whatsapp_business_messaging,business_management'});
     } else {
       console.log('Facebook SDK not loaded yet.');
     }
