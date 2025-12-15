@@ -27,16 +27,15 @@ export const FacebookLoader = () => {
   }
   function loginOnFacebook() {
     if (FB) {
-      FB.login(function(response) {
-      if (response.authResponse) {
-        console.log('Welcome!  Fetching your information.... ');
-        FB.api('/me', function(response) {
-          console.log('Good to see you, ' + response.name + '.');
-        });
-        } else {
-        console.log('User cancelled login or did not fully authorize.');
-        }
-    }, {scope: 'whatsapp_business_messaging,whatsapp_business_management'});
+      FB.login((res) => console.log(res), {
+        config_id: 1506335160598965,
+        response_type: 'code',
+        override_default_response_type: true,
+        extras: {
+          setup: {},
+        },
+        scope: 'whatsapp_business_messaging,whatsapp_business_management',
+      });
     } else {
       console.log('Facebook SDK not loaded yet.');
     }

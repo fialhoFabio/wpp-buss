@@ -31,10 +31,25 @@ export default async function RootLayout({ children }: RootLayoutProps) {
               console.info('FB_LANG:', '${process.env.FB_LANG}');
               FB.init({
                 appId            : '${process.env.FB_APP_ID}',
+                autoLogAppEvents: true,
                 xfbml            : true,
                 version          : 'v24.0'
               });
             };
+            // Session logging message event listener
+            window.addEventListener('message', (event) => {
+              if (!event.origin.endsWith(‘facebook.com’)) return;
+              try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'WA_EMBEDDED_SIGNUP') {
+                  console.log('message event: ', data); // remove after testing
+                  // your code goes here
+                }
+              } catch {
+                console.log('message event: ', event.data); // remove after testing
+                // your code goes here
+              }
+            });
           `,
         }}
       />
