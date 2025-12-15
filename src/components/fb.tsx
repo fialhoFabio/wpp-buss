@@ -73,6 +73,17 @@ export const FacebookLoader = () => {
       console.log('Facebook SDK not loaded yet.');
     }
   }
+  function me(){
+    if (FB) {
+      FB.api(
+        '/me',
+        'GET',
+        {},
+        function(response: any) {
+          console.log('Me:', response);
+        }
+      );
+  }
   function messageOnWhatsapp() {
     if (FB) {
       // FB.api(
@@ -100,7 +111,10 @@ export const FacebookLoader = () => {
             Logout
           </button>
           <button onClick={shareOnFacebook} className={btnClass}>
-            Share
+            Share on Facebook
+          </button>
+          <button onClick={me} className={btnClass}>
+            Get Me
           </button>
         </div>
       </div>

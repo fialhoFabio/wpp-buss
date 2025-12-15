@@ -8,13 +8,6 @@ export default async function HomePage() {
   return (
     <div>
       <FacebookLoader/>
-      <title>{data.title}</title>
-      <h1 className="text-4xl font-bold tracking-tight">{data.headline}</h1>
-      <p>{data.body}</p>
-      <Counter />
-      <Link to="/about" className="mt-4 inline-block underline">
-        About page
-      </Link>
     </div>
   );
 }
