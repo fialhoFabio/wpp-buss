@@ -36,20 +36,6 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                 version          : 'v24.0'
               });
             };
-            // Session logging message event listener
-            window.addEventListener('message', (event) => {
-              if (!event.origin.endsWith(‘facebook.com’)) return;
-              try {
-                const data = JSON.parse(event.data);
-                if (data.type === 'WA_EMBEDDED_SIGNUP') {
-                  console.log('message event: ', data); // remove after testing
-                  // your code goes here
-                }
-              } catch {
-                console.log('message event: ', event.data); // remove after testing
-                // your code goes here
-              }
-            });
           `,
         }}
       />

@@ -1,11 +1,35 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export const FacebookLoader = () => {
   const FB = typeof window !== 'undefined' ? window.FB : null;
   const [business_account_id, set_business_account_id] = useState<string | undefined>(undefined);
   console.log(FB)
+
+  useEffect(() => {
+    // Session logging message event listener
+    const handleMessage = (event: MessageEvent) => {
+      if (!event.origin.endsWith('facebook.com')) return;
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === 'WA_EMBEDDED_SIGNUP') {
+          console.log('message event: ', data); // remove after testing
+          // your code goes here
+        }
+      } catch {
+        console.log('message event: ', event.data); // remove after testing
+        // your code goes here
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+
+    return () => {
+      window.removeEventListener('message', handleMessage);
+    };
+  }, []);
+  
   function shareOnFacebook() {
     if (FB) {
       FB.ui(
