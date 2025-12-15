@@ -68,7 +68,7 @@ export const FacebookLoader = () => {
         response_type: 'code',
         override_default_response_type: true,
         extras: {
-          config_id: import.meta.env.WAKU_PUBLIC_FB_CONFIG_ID || '',
+          config_id: null,
           setup: {},
         },
         // scope: 'whatsapp_business_messaging,whatsapp_business_management',
