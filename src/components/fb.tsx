@@ -51,7 +51,11 @@ export const FacebookLoader = () => {
     }
   }
   function loginOnFacebook() {
-    console.log({
+    if (FB) {
+      FB.login((res) => {
+        console.log('FB login: ', res);
+        set_wb_code(res.authResponse?.code);
+      }, {
         config_id: import.meta.env.WAKU_PUBLIC_FB_CONFIG_ID || '',
         response_type: 'code',
         override_default_response_type: true,
@@ -74,19 +78,6 @@ export const FacebookLoader = () => {
               // WABA IDs go here
             }
           },
-        },
-        // scope: 'whatsapp_business_messaging,whatsapp_business_management',
-      });
-    if (FB) {
-      FB.login((res) => {
-        console.log('FB login: ', res);
-        set_wb_code(res.authResponse?.code);
-      }, {
-        config_id: import.meta.env.WAKU_PUBLIC_FB_CONFIG_ID || '',
-        response_type: 'code',
-        override_default_response_type: true,
-        extras: {
-          setup: {},
         },
         // scope: 'whatsapp_business_messaging,whatsapp_business_management',
       });
