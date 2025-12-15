@@ -47,6 +47,15 @@ export const FacebookLoader = () => {
       console.log('Facebook SDK not loaded yet.');
     }
   }
+  function logoutFromFacebook() {
+    if (FB) {
+      FB.logout(function(response) {
+        console.log('User logged out:', response);
+      });
+    } else {
+      console.log('Facebook SDK not loaded yet.');
+    }
+  }
   const btnClass = "px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700";
   
   return (
@@ -59,6 +68,9 @@ export const FacebookLoader = () => {
       </button>
       <button onClick={getLoginStatus} className="px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-700">
         Get Login Status
+      </button>
+      <button onClick={logoutFromFacebook} className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">
+        Logout from Facebook
       </button>
     </div>
   );
