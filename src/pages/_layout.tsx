@@ -27,10 +27,10 @@ export default async function RootLayout({ children }: RootLayoutProps) {
           __html: `
             window.fbAsyncInit = function() {
               console.info('Loading Facebook SDK...');
-              console.info('FB_APP_ID:', '${process.env.FB_APP_ID}');
-              console.info('FB_LANG:', '${process.env.FB_LANG}');
+              console.info('FB_APP_ID:', '${import.meta.env.WAKU_PUBLIC_FB_APP_ID}');
+              console.info('FB_LANG:', '${import.meta.env.WAKU_PUBLIC_FB_LANG}');
               FB.init({
-                appId            : '${process.env.FB_APP_ID}',
+                appId            : '${import.meta.env.WAKU_PUBLIC_FB_APP_ID}',
                 autoLogAppEvents: true,
                 xfbml            : false,
                 version          : 'v24.0'
