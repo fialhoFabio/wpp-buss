@@ -69,6 +69,11 @@ export const FacebookLoader = () => {
     }
   }
   function getAccessToken() {
+    console.log({
+      client_id: process.env.FB_APP_ID,
+      client_secret: process.env.FB_APP_SECRET,
+      code: wb_code,
+    })
     if (FB) {
       FB.api(
         '/oauth/access_token',
