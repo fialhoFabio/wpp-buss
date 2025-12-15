@@ -87,6 +87,20 @@ export const FacebookLoader = () => {
       console.log('Facebook SDK not loaded yet.');
     }
   }
+  function meBusinesses(){
+    if (FB) {
+      FB.api(
+        '/me/businesses',
+        'GET',
+        {},
+        function(response: any) {
+          console.log('Me:', response);
+        }
+      );
+    } else {
+      console.log('Facebook SDK not loaded yet.');
+    }
+  }
   function messageOnWhatsapp() {
     if (FB) {
       // FB.api(
@@ -125,6 +139,9 @@ export const FacebookLoader = () => {
       {/* WhatsApp Business */}
       <div className="space-y-2">
         <h3 className="text-lg font-semibold">WhatsApp Business</h3>
+        <button onClick={meBusinesses} className={btnClass}>
+          Get My Businesses
+        </button>
         <div className="flex flex-wrap gap-3 items-center">
           <input 
             type="text" 
