@@ -38,19 +38,27 @@ export const FacebookLoader = () => {
       console.log('Facebook SDK not loaded yet.');
     }
   }
+  function getLoginStatus() {
+    if (FB) {
+      FB.getLoginStatus(function(response: any) {
+        console.log('Login status:', response);
+      });
+    } else {
+      console.log('Facebook SDK not loaded yet.');
+    }
+  }
+  const btnClass = "px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700";
+  
   return (
-    <div className="flex gap-4">
-      <button 
-        onClick={shareOnFacebook}
-        className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-      >
+    <div className="flex gap-3">
+      <button onClick={shareOnFacebook} className={btnClass}>
         Share on Facebook
       </button>
-      <button 
-        onClick={loginOnFacebook}
-        className="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-lg transition-colors duration-200 shadow-md hover:shadow-lg"
-      >
+      <button onClick={loginOnFacebook} className={btnClass}>
         Login on Facebook
+      </button>
+      <button onClick={getLoginStatus} className="px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-700">
+        Get Login Status
       </button>
     </div>
   );
