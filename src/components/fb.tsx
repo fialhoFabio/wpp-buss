@@ -51,6 +51,7 @@ export const FacebookLoader = () => {
     }
   }
   function loginOnFacebook() {
+    console.log(process.env.FB_CONFIG_ID);
     if (FB) {
       FB.login((res) => {
         console.log('FB login: ', res);
@@ -70,17 +71,17 @@ export const FacebookLoader = () => {
   }
   function getAccessToken() {
     console.log({
-      client_id: process.env.FB_APP_ID,
-      client_secret: process.env.FB_APP_SECRET,
-      code: wb_code,
-    })
+          client_id: import.meta.env.WAKU_PUBLIC_FB_APP_ID,
+          client_secret: import.meta.env.WAKU_PUBLIC_FB_APP_SECRET,
+          code: wb_code,
+        })
     if (FB) {
       FB.api(
         '/oauth/access_token',
         'GET',
         {
-          client_id: process.env.FB_APP_ID,
-          client_secret: process.env.FB_APP_SECRET,
+          client_id: import.meta.env.WAKU_PUBLIC_FB_APP_ID,
+          client_secret: import.meta.env.WAKU_PUBLIC_FB_APP_SECRET,
           code: wb_code,
         },
         function(response: any) {
