@@ -29,7 +29,7 @@ export const FacebookLoader = () => {
       window.removeEventListener('message', handleMessage);
     };
   }, []);
-  
+
   function shareOnFacebook() {
     if (FB) {
       FB.ui(
@@ -51,11 +51,11 @@ export const FacebookLoader = () => {
   }
   function loginOnFacebook() {
     if (FB) {
-      FB.login((res) => console.log(res), {
-        config_id: 1506335160598965,
+      FB.login((res) => console.log('FB login: ' + res), {
         response_type: 'code',
         override_default_response_type: true,
         extras: {
+          config_id: "1506335160598965",
           setup: {},
         },
         scope: 'whatsapp_business_messaging,whatsapp_business_management',
