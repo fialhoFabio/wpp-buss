@@ -56,6 +56,29 @@ export const FacebookLoader = () => {
       console.log('Facebook SDK not loaded yet.');
     }
   }
+  function getWhatsappBusiness() {
+    if (FB) {
+      FB.api(
+        '/1913965599335236',
+        'GET',
+        {},
+        function(response: any) {
+          console.log('WhatsApp Business:', response);
+        }
+      );
+    } else {
+      console.log('Facebook SDK not loaded yet.');
+    }
+  }
+  function messageOnWhatsapp() {
+    if (FB) {
+      // FB.api(
+
+      // )
+    } else {
+      console.log('Facebook SDK not loaded yet.');
+    }
+  }
   const btnClass = "px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700";
   
   return (
@@ -71,6 +94,12 @@ export const FacebookLoader = () => {
       </button>
       <button onClick={logoutFromFacebook} className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">
         Logout from Facebook
+      </button>
+      <button onClick={getWhatsappBusiness} className={btnClass}>
+        Get WhatsApp Business
+      </button>
+      <button onClick={messageOnWhatsapp} className={btnClass}>
+        Message on WhatsApp
       </button>
     </div>
   );
