@@ -31,7 +31,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
               console.info('FB_LANG:', '${process.env.FB_LANG}');
               FB.init({
                 appId            : '${process.env.FB_APP_ID}',
-                xfbml            : false,
+                xfbml            : true,
                 version          : 'v24.0'
               });
             };
