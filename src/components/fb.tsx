@@ -1,7 +1,10 @@
 'use client';
 
+import { useState } from "react";
+
 export const FacebookLoader = () => {
   const FB = typeof window !== 'undefined' ? window.FB : null;
+  const [business_account_id, set_business_account_id] = useState<string | undefined>(undefined);
   console.log(FB)
   function shareOnFacebook() {
     if (FB) {
@@ -56,10 +59,10 @@ export const FacebookLoader = () => {
       console.log('Facebook SDK not loaded yet.');
     }
   }
-  function getWhatsappBusiness() {
+  function getWhatsappBusiness(id?: string) {
     if (FB) {
       FB.api(
-        '/1913965599335236',
+        `/${id}`,
         'GET',
         {},
         function(response: any) {
@@ -82,25 +85,45 @@ export const FacebookLoader = () => {
   const btnClass = "px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700";
   
   return (
-    <div className="flex gap-3">
-      <button onClick={shareOnFacebook} className={btnClass}>
-        Share on Facebook
-      </button>
-      <button onClick={loginOnFacebook} className={btnClass}>
-        Login on Facebook
-      </button>
-      <button onClick={getLoginStatus} className="px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-700">
-        Get Login Status
-      </button>
-      <button onClick={logoutFromFacebook} className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">
-        Logout from Facebook
-      </button>
-      <button onClick={getWhatsappBusiness} className={btnClass}>
-        Get WhatsApp Business
-      </button>
-      <button onClick={messageOnWhatsapp} className={btnClass}>
-        Message on WhatsApp
-      </button>
+    <div className="max-w-4xl mx-auto p-6 space-y-6">
+      {/* Facebook Actions */}
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold">Facebook</h3>
+        <div className="flex flex-wrap gap-3">
+          <button onClick={loginOnFacebook} className={btnClass}>
+            Login
+          </button>
+          <button onClick={getLoginStatus} className="px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-700">
+            Check Status
+          </button>
+          <button onClick={logoutFromFacebook} className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">
+            Logout
+          </button>
+          <button onClick={shareOnFacebook} className={btnClass}>
+            Share
+          </button>
+        </div>
+      </div>
+
+      {/* WhatsApp Business */}
+      <div className="space-y-2">
+        <h3 className="text-lg font-semibold">WhatsApp Business</h3>
+        <div className="flex flex-wrap gap-3 items-center">
+          <input 
+            type="text" 
+            placeholder="Business Account ID" 
+            value={business_account_id} 
+            onChange={(e) => set_business_account_id(e.target.value)} 
+            className="px-3 py-2 border border-gray-300 rounded flex-1 min-w-[200px]"
+          />
+          <button onClick={() => getWhatsappBusiness(business_account_id)} className={btnClass}>
+            Get Business Info
+          </button>
+          <button onClick={messageOnWhatsapp} className={btnClass}>
+            Send Message
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
