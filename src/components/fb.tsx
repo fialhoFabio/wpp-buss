@@ -51,16 +51,16 @@ export const FacebookLoader = () => {
     }
   }
   function loginOnFacebook() {
-    console.log(process.env.FB_CONFIG_ID);
+    console.log(import.meta.env.WAKU_PUBLIC_FB_CONFIG_ID);
     if (FB) {
       FB.login((res) => {
         console.log('FB login: ', res);
         set_wb_code(res.authResponse?.code);
       }, {
+        config_id: import.meta.env.WAKU_PUBLIC_FB_CONFIG_ID || '',
         response_type: 'code',
         override_default_response_type: true,
         extras: {
-          config_id: process.env.FB_CONFIG_ID || '',
           setup: {},
         },
         scope: 'whatsapp_business_messaging,whatsapp_business_management',
