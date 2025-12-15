@@ -83,6 +83,9 @@ export const FacebookLoader = () => {
           console.log('Me:', response);
         }
       );
+    } else {
+      console.log('Facebook SDK not loaded yet.');
+    }
   }
   function messageOnWhatsapp() {
     if (FB) {
@@ -140,4 +143,4 @@ export const FacebookLoader = () => {
       </div>
     </div>
   );
-};
+}
