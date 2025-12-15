@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 export const FacebookLoader = () => {
   const FB = typeof window !== 'undefined' ? window.FB : null;
   const [business_account_id, set_business_account_id] = useState<string | undefined>(undefined);
+  const [wb_code, set_wb_code] = useState<string | undefined>(undefined);
   console.log(FB)
 
   useEffect(() => {
@@ -51,15 +52,36 @@ export const FacebookLoader = () => {
   }
   function loginOnFacebook() {
     if (FB) {
-      FB.login((res) => console.log('FB login: ', res), {
+      FB.login((res) => {
+        console.log('FB login: ', res);
+        set_wb_code(res.authResponse?.code);
+      }, {
         response_type: 'code',
         override_default_response_type: true,
         extras: {
-          config_id: "1506335160598965",
+          config_id: process.env.FB_CONFIG_ID || '',
           setup: {},
         },
         scope: 'whatsapp_business_messaging,whatsapp_business_management',
       });
+    } else {
+      console.log('Facebook SDK not loaded yet.');
+    }
+  }
+  function getAccessToken() {
+    if (FB) {
+      FB.api(
+        '/oauth/access_token',
+        'GET',
+        {
+          client_id: process.env.FB_APP_ID,
+          client_secret: process.env.FB_APP_SECRET,
+          code: wb_code,
+        },
+        function(response: any) {
+          console.log('Access Token:', response);
+        }
+      );
     } else {
       console.log('Facebook SDK not loaded yet.');
     }
@@ -137,6 +159,10 @@ export const FacebookLoader = () => {
   
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
+      <h3>Code: {wb_code}</h3>
+      <button disabled={!wb_code} onClick={getAccessToken} className={btnClass}>
+        Get Access Token
+      </button>
       {/* Facebook Actions */}
       <div className="space-y-2">
         <h3 className="text-lg font-semibold">Facebook</h3>
