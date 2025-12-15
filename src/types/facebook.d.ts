@@ -13,7 +13,17 @@ declare global {
       api: (path: string, method?: string, params?: any, callback?: (response: any) => void) => void;
       ui: (params: any, callback?: (response: any) => void) => void;
       getLoginStatus: (callback: (response: any) => void, roundtrip?: boolean) => void;
-      login: (callback: (response: any) => void, options?: { scope?: string; auth_type?: string }) => void;
+      login: (callback: (response: any) => void, options?: { 
+        scope?: string; 
+        auth_type?: string;
+        config_id?: number;
+        response_type?: string;
+        override_default_response_type?: boolean;
+        extras?: {
+          config_id?: string;
+          setup?: Record<string, any>;
+        };
+      }) => void;
       logout: (callback: (response: any) => void) => void;
       AppEvents: {
         EventNames: {
