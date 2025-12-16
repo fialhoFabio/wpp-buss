@@ -1,12 +1,11 @@
-import { FacebookLoader } from 'components/fb';
-import { LoginWithFacebookButton } from 'components/fb_login_button';
+import { LoginWithFacebookButton } from 'components/facebook/login-button';
 
 export default async function HomePage() {
   await getData();
 
   return (
     <div>
-      <LoginWithFacebookButton />
+      <LoginWithFacebookButton/>
     </div>
   );
 }

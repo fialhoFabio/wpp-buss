@@ -13,5 +13,12 @@ export function LoginWithFacebookButton() {
     if (error) console.error(error);
   }
 
-  return <button onClick={login}>Entrar com Facebook</button>;
+  return (
+    <button
+      onClick={login}
+      className='rounded-sm bg-blue-600 px-4 py-2 text-white hover:bg-blue-700'
+    >
+      Entrar com Facebook
+    </button>
+  );
 }

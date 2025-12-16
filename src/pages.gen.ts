@@ -8,12 +8,15 @@ import type { getConfig as File_About_getConfig } from './pages/about';
 // prettier-ignore
 import type { getConfig as File_AuthCallback_getConfig } from './pages/auth/callback';
 // prettier-ignore
+import type { getConfig as File_Dashboard_getConfig } from './pages/dashboard';
+// prettier-ignore
 import type { getConfig as File_Index_getConfig } from './pages/index';
 
 // prettier-ignore
 type Page =
 | ({ path: '/about' } & GetConfigResponse<typeof File_About_getConfig>)
 | ({ path: '/auth/callback' } & GetConfigResponse<typeof File_AuthCallback_getConfig>)
+| ({ path: '/dashboard' } & GetConfigResponse<typeof File_Dashboard_getConfig>)
 | ({ path: '/' } & GetConfigResponse<typeof File_Index_getConfig>);
 
 // prettier-ignore

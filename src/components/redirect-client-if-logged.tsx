@@ -9,7 +9,7 @@ export function RedirectClientIfLogged() {
       const session = await supabase.auth.getSession();
       console.log('Session:', session);
       if (session.data.session) {
-        window.location.href = '/';
+        window.location.href = '/dashboard';
       }
     }
     checkSession();
