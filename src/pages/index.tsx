@@ -1,13 +1,12 @@
-import { Link } from 'waku';
-import { Counter } from '../components/counter';
-import { FacebookLoader } from '../components/fb';
+import { FacebookLoader } from 'components/fb';
+import { LoginWithFacebookButton } from 'components/fb_login_button';
 
 export default async function HomePage() {
-  const data = await getData();
+  await getData();
 
   return (
     <div>
-      <FacebookLoader/>
+      <LoginWithFacebookButton />
     </div>
   );
 }
