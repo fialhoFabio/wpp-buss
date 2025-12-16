@@ -52,3 +52,10 @@ export const dbSaveWhatsappNumber = async ({
     .single();
   return { insertData, error };
 };
+
+export const dbGetWhatsappNumbers = async () => {
+  const { data, error } = await supabase
+    .from('whatsapp_phone_numbers')
+    .select('*');
+  return { data, error };
+};

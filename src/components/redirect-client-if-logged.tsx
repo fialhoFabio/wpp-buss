@@ -10,6 +10,9 @@ export function RedirectClientIfLogged() {
       console.log('Session:', session);
       if (session.data.session) {
         window.location.href = '/dashboard';
+      } else {
+        console.log('No active session found.');
+        window.location.href = '/';
       }
     }
     checkSession();

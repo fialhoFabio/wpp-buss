@@ -1,11 +1,13 @@
 import { LoginWithFacebookButton } from 'components/facebook/login-button';
+import { LoginWithGoogleButton } from 'components/google/login-button';
 
 export default async function HomePage() {
   await getData();
 
   return (
-    <div>
+    <div className='p-6 flex flex-col gap-4'>
       <LoginWithFacebookButton/>
+      <LoginWithGoogleButton/>
     </div>
   );
 }
