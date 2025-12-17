@@ -42,3 +42,12 @@ type getWabaNumbersResponse = {
 export const getWabaNumbers = async (waba_id: string): Promise<getWabaNumbersResponse> => {
   return await fbFetch(`${waba_id}/phone_numbers`);
 };
+
+export const verifyWabaId = async (waba_id: string): Promise<{ valid: boolean; name?: string; error?: string }> => {
+  try {
+    const data = await fbFetch(`${waba_id}?fields=id,name`);
+    return { valid: true, name: data.name };
+  } catch (error) {
+    return { valid: false, error: error instanceof Error ? error.message : 'Unknown error' };
+  }
+};

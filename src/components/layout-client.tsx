@@ -3,9 +3,10 @@
 import { useEffect, type ReactNode } from 'react';
 import { useRouter } from 'waku';
 import { useAuth } from 'lib/useAuth';
+import { navigation } from './navigation';
 
 // Rotas que requerem autenticação
-const PROTECTED_ROUTES = ['/dashboard'];
+const PROTECTED_ROUTES = navigation.filter(item => item.requireAuth).map(item => item.href);
 
 interface LayoutClientProps {
   children: ReactNode;
@@ -23,6 +24,8 @@ export function LayoutClient({ children }: LayoutClientProps) {
     
     if (isProtectedRoute && !isAuthenticated) {
       push('/');
+    } else if (!isProtectedRoute && isAuthenticated) {
+      push('/whatsapp-numbers');
     }
   }, [isAuthenticated, loading, path, push]);
 

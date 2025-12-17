@@ -9,7 +9,7 @@ export function RedirectClientIfLogged() {
       const session = await supabase.auth.getSession();
       console.log('Session:', session);
       if (session.data.session) {
-        window.location.href = '/dashboard';
+        window.location.href = '/whatsapp-numbers';
       } else {
         console.log('No active session found.');
         window.location.href = '/';
