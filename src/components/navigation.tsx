@@ -5,7 +5,7 @@ import { useAuth } from 'lib/useAuth';
 
 export const navigation = [
   { name: 'Link Whatsapp account', href: '/link-whatsapp-account' as const, requireAuth: true },
-  { name: 'Whatsapp numbers', href: '/whatsapp-numbers' as const, requireAuth: true },
+  // { name: 'Whatsapp numbers', href: '/whatsapp-numbers' as const, requireAuth: true },
 ];
 
 export const Navigation = () => {
