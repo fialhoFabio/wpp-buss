@@ -1,5 +1,6 @@
 import { LoginWithFacebookButton } from 'components/facebook/login-button';
 import { LoginWithGoogleButton } from 'components/google/login-button';
+import { EmailLoginForm } from 'components/auth/email-login-form';
 
 export default async function HomePage() {
   await getData();
@@ -19,23 +20,11 @@ export default async function HomePage() {
             WhatsApp Business
           </h1>
           <p className='mt-2 text-sm text-gray-500'>
-            Gerencie suas contas e números em um só lugar.
+            Entre para gerenciar suas contas.
           </p>
         </div>
 
-        {/* Divider */}
-        <div className='relative mt-8'>
-          <div className='absolute inset-0 flex items-center' aria-hidden='true'>
-            <div className='w-full border-t border-gray-200'></div>
-          </div>
-          <div className='relative flex justify-center'>
-            <span className='bg-white px-3 text-xs font-semibold uppercase tracking-wider text-gray-400'>
-              Acesso
-            </span>
-          </div>
-        </div>
-
-        {/* Buttons Section */}
+        {/* Social Buttons Section */}
         <div className='mt-8 flex flex-col gap-3 [&>button]:w-full [&>button]:rounded-lg [&>button]:py-2.5 [&>button]:font-medium [&>button]:shadow-sm [&>button]:transition-all'>
           <div className='[&>button]:w-full [&>button]:!bg-[#1877F2] [&>button]:hover:!bg-[#166fe5]'>
              <LoginWithFacebookButton/>
@@ -44,6 +33,21 @@ export default async function HomePage() {
              <LoginWithGoogleButton/>
           </div>
         </div>
+
+        {/* Divider */}
+        <div className='relative mt-8 mb-8'>
+          <div className='absolute inset-0 flex items-center' aria-hidden='true'>
+            <div className='w-full border-t border-gray-200'></div>
+          </div>
+          <div className='relative flex justify-center'>
+            <span className='bg-white px-3 text-xs font-semibold uppercase tracking-wider text-gray-400'>
+              Ou e-mail
+            </span>
+          </div>
+        </div>
+
+        {/* Email Form */}
+        <EmailLoginForm />
 
         {/* Footer */}
         <p className='mt-8 text-center text-xs text-gray-400'>
