@@ -1,4 +1,4 @@
-import { LoginWithFacebookButton } from 'components/facebook/login-button';
+// import { LoginWithFacebookButton } from 'components/facebook/login-button';
 import { LoginWithGoogleButton } from 'components/google/login-button';
 import { EmailLoginForm } from 'components/auth/email-login-form';
 
@@ -26,9 +26,9 @@ export default async function HomePage() {
 
         {/* Social Buttons Section */}
         <div className='mt-8 flex flex-col gap-3 [&>button]:w-full [&>button]:rounded-lg [&>button]:py-2.5 [&>button]:font-medium [&>button]:shadow-sm [&>button]:transition-all'>
-          <div className='[&>button]:w-full [&>button]:!bg-[#1877F2] [&>button]:hover:!bg-[#166fe5]'>
+           {/* <div className='[&>button]:w-full [&>button]:!bg-[#1877F2] [&>button]:hover:!bg-[#166fe5]'>
              <LoginWithFacebookButton/>
-          </div>
+           </div> */}
           <div className='[&>button]:w-full [&>button]:!bg-white [&>button]:!text-gray-700 [&>button]:ring-1 [&>button]:ring-inset [&>button]:ring-gray-300 [&>button]:hover:!bg-gray-50'>
              <LoginWithGoogleButton/>
           </div>
