@@ -10,9 +10,9 @@ export default async function PrivacyPolicyPage() {
         <section>
           <h2 className='text-lg font-semibold text-gray-900'>1. Quem somos</h2>
           <p className='mt-2'>
-            Esta Política de Privacidade descreve como a plataforma <strong>WhatBus</strong> ("Plataforma", "nós")
+            Esta Política de Privacidade descreve como a plataforma <strong>Mdmed Alerts</strong> ("Plataforma", "nós")
             coleta, usa, armazena e protege dados pessoais quando você utiliza nossos serviços para conectar contas da Meta
-            (Facebook/Instagram) e gerenciar mensagens via WhatBus.
+            (Facebook/Instagram) e gerenciar mensagens via Mdmed Alerts.
           </p>
         </section>
 
@@ -21,7 +21,7 @@ export default async function PrivacyPolicyPage() {
           <p className='mt-2'>Podemos coletar as seguintes categorias de dados:</p>
           <ul className='mt-2 list-disc space-y-1 pl-6'>
             <li>Dados de cadastro e autenticação (nome, e-mail, identificadores de conta).</li>
-            <li>Dados das contas conectadas da Meta (IDs de conta, páginas, números do WhatBus vinculados e permissões concedidas).</li>
+            <li>Dados das contas conectadas da Meta (IDs de conta, páginas, números do Mdmed Alerts vinculados e permissões concedidas).</li>
             <li>Dados operacionais e de uso (logs técnicos, data/hora de acesso, endereço IP, tipo de dispositivo/navegador).</li>
             <li>Dados necessários para executar integrações, sincronizações e envio/recebimento de mensagens.</li>
           </ul>
@@ -32,7 +32,7 @@ export default async function PrivacyPolicyPage() {
           <p className='mt-2'>Usamos os dados para:</p>
           <ul className='mt-2 list-disc space-y-1 pl-6'>
             <li>Permitir login e autenticação segura.</li>
-            <li>Conectar e manter integrações com a Meta e com a WhatBus.</li>
+            <li>Conectar e manter integrações com a Meta e com a Mdmed Alerts.</li>
             <li>Gerenciar mensagens e recursos solicitados pelo usuário.</li>
             <li>Prevenir fraudes, abuso, falhas técnicas e acessos não autorizados.</li>
             <li>Cumprir obrigações legais e regulatórias aplicáveis.</li>

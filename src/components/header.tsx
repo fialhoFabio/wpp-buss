@@ -18,7 +18,7 @@ export const Header = () => {
         <div className='flex items-center gap-8'>
           <h2 className='text-lg font-bold tracking-tight'>
             <Link to='/' className='text-gray-900 hover:text-gray-700'>
-              WhatBus
+              Mdmed Alerts
             </Link>
           </h2>
           

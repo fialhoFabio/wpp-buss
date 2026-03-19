@@ -133,7 +133,7 @@ export const FacebookLoader = () => {
         'GET',
         {},
         function(response: unknown) {
-          console.log('WhatBus:', response);
+          console.log('Mdmed Alerts:', response);
         }
       );
     } else {
@@ -190,7 +190,7 @@ export const FacebookLoader = () => {
         <h3 className='text-lg font-semibold'>Facebook</h3>
         <div className='flex flex-wrap gap-3'>
           <button onClick={loginOnFacebook} className={btnClass}>
-            + Adicionar WhatBus
+            + Adicionar Mdmed Alerts
           </button>
           <button onClick={getLoginStatus} className='px-4 py-2 rounded bg-gray-600 text-white hover:bg-gray-700'>
             Check Status
@@ -207,9 +207,9 @@ export const FacebookLoader = () => {
         </div>
       </div>
 
-      {/* WhatsApp Business */}
+      {/* Mdmed Alerts */}
       <div className='space-y-2'>
-        <h3 className='text-lg font-semibold'>WhatsApp Business</h3>
+        <h3 className='text-lg font-semibold'>Mdmed Alerts</h3>
         <button onClick={meBusinesses} className={btnClass}>
           Get My Businesses
         </button>
