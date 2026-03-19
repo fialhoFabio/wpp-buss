@@ -24,7 +24,7 @@ export function LayoutClient({ children }: LayoutClientProps) {
     
     if (isProtectedRoute && !isAuthenticated) {
       push('/');
-    } else if (!isProtectedRoute && isAuthenticated) {
+    } else if (path === '/' && isAuthenticated) {
       push('/link-whatsapp-account');
     }
   }, [isAuthenticated, loading, path, push]);
