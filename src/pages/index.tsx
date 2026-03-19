@@ -17,7 +17,7 @@ export default async function HomePage() {
              </svg>
           </div>
           <h1 className='mt-6 text-2xl font-bold tracking-tight text-gray-900'>
-            WhatsApp Business
+            WhatBus
           </h1>
           <p className='mt-2 text-sm text-gray-500'>
             Entre para gerenciar suas contas.
@@ -60,7 +60,7 @@ export default async function HomePage() {
 
 const getData = async () => {
   const data = {
-    title: 'WhatsApp Business Manager',
+    title: 'WhatBus Manager',
     headline: 'Centralize sua operação',
     body: 'Hello world!',
   };
