@@ -16,9 +16,12 @@ export function LoginWithFacebookButton() {
   return (
     <button
       onClick={login}
-      className='rounded-sm bg-blue-600 px-4 py-2 text-white hover:bg-blue-700'
+      disabled
+      aria-disabled='true'
+      title='Login com Facebook temporariamente indisponível'
+      className='cursor-not-allowed rounded-sm bg-blue-400 px-4 py-2 text-white opacity-60'
     >
-      Entrar com Facebook
+      Entrar com Facebook indisponível
     </button>
   );
 }
