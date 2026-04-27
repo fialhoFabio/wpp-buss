@@ -1,28 +1,34 @@
 import type { Database } from 'types/database.types';
 
-export type Conversation = Database['public']['Tables']['wpp_conversations']['Row'];
+export type ConversationRow = Database['public']['Tables']['wpp_conversations']['Row'];
+export type LastMessagePreview = Pick<Database['public']['Tables']['wpp_messages']['Row'], 'message_content' | 'message_type' | 'timestamp'>;
+export type Conversation = ConversationRow & { wpp_messages: LastMessagePreview[] };
 export type Message = Database['public']['Tables']['wpp_messages']['Row'];
 
-export function getMessageText(message: Message): string {
-  const content = message.message_content as Record<string, unknown> | null;
-  if (!content) return `[${message.message_type}]`;
-
+function extractText(content: Record<string, unknown>, type: string): string | null {
   if (typeof content['body'] === 'string') return content['body'];
   const text = content['text'];
   if (text && typeof text === 'object' && typeof (text as Record<string, unknown>)['body'] === 'string') {
     return (text as Record<string, unknown>)['body'] as string;
   }
   if (typeof content['caption'] === 'string') return content['caption'];
+  const mediaLabels: Record<string, string> = {
+    image: '📷 Imagem', audio: '🎵 Áudio', video: '🎬 Vídeo',
+    document: '📄 Documento', sticker: '🎨 Sticker', location: '📍 Localização', reaction: '👍 Reação',
+  };
+  return mediaLabels[type] ?? null;
+}
 
-  if (message.message_type === 'image') return '📷 Imagem';
-  if (message.message_type === 'audio') return '🎵 Áudio';
-  if (message.message_type === 'video') return '🎬 Vídeo';
-  if (message.message_type === 'document') return '📄 Documento';
-  if (message.message_type === 'sticker') return '🎨 Sticker';
-  if (message.message_type === 'location') return '📍 Localização';
-  if (message.message_type === 'reaction') return '👍 Reação';
+export function getPreviewText(preview: LastMessagePreview): string {
+  const content = preview.message_content as Record<string, unknown> | null;
+  if (!content) return `[${preview.message_type}]`;
+  return extractText(content, preview.message_type) ?? `[${preview.message_type}]`;
+}
 
-  return `[${message.message_type}]`;
+export function getMessageText(message: Message): string {
+  const content = message.message_content as Record<string, unknown> | null;
+  if (!content) return `[${message.message_type}]`;
+  return extractText(content, message.message_type) ?? `[${message.message_type}]`;
 }
 
 export function formatTime(dateStr: string): string {

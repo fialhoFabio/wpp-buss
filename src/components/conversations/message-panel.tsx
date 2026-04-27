@@ -43,7 +43,6 @@ export const MessagePanel = ({
 
   return (
     <div className='flex flex-1 flex-col overflow-hidden'>
-      {/* Header */}
       <div className='flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-3 shadow-sm'>
         <div className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500 text-base font-semibold text-white'>
           {getInitials(conversation.contact_name, conversation.contact_phone)}
@@ -53,14 +52,11 @@ export const MessagePanel = ({
             {conversation.contact_name || conversation.contact_phone}
           </p>
           <p className='text-xs text-gray-500'>
-            {conversation.display_phone_number
-              ? `via ${conversation.display_phone_number}`
-              : conversation.contact_phone}
+            {conversation.display_phone_number ? `via ${conversation.display_phone_number}` : conversation.contact_phone}
           </p>
         </div>
       </div>
 
-      {/* Messages */}
       <div className='flex-1 overflow-y-auto bg-[#efeae2] px-4 py-3'>
         {loading ? (
           <div className='flex h-full items-center justify-center'>
@@ -72,15 +68,12 @@ export const MessagePanel = ({
           </div>
         ) : (
           <div className='space-y-2'>
-            {messages.map((message) => (
-              <MessageBubble key={message.id} message={message} />
-            ))}
+            {messages.map((message) => <MessageBubble key={message.id} message={message} />)}
             <div ref={messagesEndRef} />
           </div>
         )}
       </div>
 
-      {/* Reply bar */}
       <div className='flex items-center gap-3 border-t border-gray-200 bg-white px-4 py-3'>
         <input
           type='text'
@@ -88,10 +81,7 @@ export const MessagePanel = ({
           disabled
           className='flex-1 cursor-not-allowed rounded-full bg-gray-100 px-4 py-2 text-sm text-gray-400 outline-none'
         />
-        <button
-          disabled
-          className='flex h-10 w-10 flex-shrink-0 cursor-not-allowed items-center justify-center rounded-full bg-gray-200 text-gray-400'
-        >
+        <button disabled className='flex h-10 w-10 flex-shrink-0 cursor-not-allowed items-center justify-center rounded-full bg-gray-200 text-gray-400'>
           <svg className='h-5 w-5' fill='currentColor' viewBox='0 0 24 24'>
             <path d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z' />
           </svg>
