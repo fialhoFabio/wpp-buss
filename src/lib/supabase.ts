@@ -82,6 +82,35 @@ export const dbGetWhatsappNumbers = async () => {
   return { data, error };
 };
 
+export const dbGetConversations = async () => {
+  const { data, error } = await supabase
+    .from('wpp_conversations')
+    .select('*')
+    .order('last_message_at', { ascending: false });
+  if (error) {
+    console.error('Error fetching conversations:', error);
+  }
+  if (data === null) {
+    return { data: [], error };
+  }
+  return { data, error };
+};
+
+export const dbGetMessages = async (conversationId: string) => {
+  const { data, error } = await supabase
+    .from('wpp_messages')
+    .select('*')
+    .eq('conversation_id', conversationId)
+    .order('timestamp', { ascending: true });
+  if (error) {
+    console.error('Error fetching messages:', error);
+  }
+  if (data === null) {
+    return { data: [], error };
+  }
+  return { data, error };
+};
+
 export const dbDeleteWhatsappAccount = async (id: string) => {
   const { error } = await supabase
     .from('whatsapp_accounts')

@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_logs: {
+        Row: {
+          body: Json | null
+          created_at: string | null
+          duration_ms: number | null
+          endpoint: string
+          error_message: string | null
+          id: string
+          method: string
+          response: Json | null
+          status_code: number | null
+          success: boolean | null
+        }
+        Insert: {
+          body?: Json | null
+          created_at?: string | null
+          duration_ms?: number | null
+          endpoint: string
+          error_message?: string | null
+          id?: string
+          method: string
+          response?: Json | null
+          status_code?: number | null
+          success?: boolean | null
+        }
+        Update: {
+          body?: Json | null
+          created_at?: string | null
+          duration_ms?: number | null
+          endpoint?: string
+          error_message?: string | null
+          id?: string
+          method?: string
+          response?: Json | null
+          status_code?: number | null
+          success?: boolean | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -114,6 +153,86 @@ export type Database = {
             columns: ['whatsapp_account_id']
             isOneToOne: false
             referencedRelation: 'whatsapp_accounts'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      wpp_conversations: {
+        Row: {
+          contact_name: string | null
+          contact_phone: string
+          created_at: string
+          display_phone_number: string | null
+          id: string
+          last_message_at: string | null
+          owner_id: string | null
+          phone_number_id: string
+          updated_at: string
+          waba_id: string
+        }
+        Insert: {
+          contact_name?: string | null
+          contact_phone: string
+          created_at?: string
+          display_phone_number?: string | null
+          id?: string
+          last_message_at?: string | null
+          owner_id?: string | null
+          phone_number_id: string
+          updated_at?: string
+          waba_id: string
+        }
+        Update: {
+          contact_name?: string | null
+          contact_phone?: string
+          created_at?: string
+          display_phone_number?: string | null
+          id?: string
+          last_message_at?: string | null
+          owner_id?: string | null
+          phone_number_id?: string
+          updated_at?: string
+          waba_id?: string
+        }
+        Relationships: []
+      }
+      wpp_messages: {
+        Row: {
+          conversation_id: string
+          created_at: string
+          id: string
+          message_content: Json | null
+          message_id: string
+          message_type: string
+          raw_payload: Json | null
+          timestamp: string
+        }
+        Insert: {
+          conversation_id: string
+          created_at?: string
+          id?: string
+          message_content?: Json | null
+          message_id: string
+          message_type: string
+          raw_payload?: Json | null
+          timestamp: string
+        }
+        Update: {
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message_content?: Json | null
+          message_id?: string
+          message_type?: string
+          raw_payload?: Json | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'wpp_messages_conversation_id_fkey'
+            columns: ['conversation_id']
+            isOneToOne: false
+            referencedRelation: 'wpp_conversations'
             referencedColumns: ['id']
           },
         ]
