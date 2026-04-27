@@ -85,8 +85,10 @@ export const dbGetWhatsappNumbers = async () => {
 export const dbGetConversations = async () => {
   const { data, error } = await supabase
     .from('wpp_conversations')
-    .select('*')
-    .order('last_message_at', { ascending: false });
+    .select('*, wpp_messages(message_content, message_type, timestamp)')
+    .order('last_message_at', { ascending: false })
+    .order('timestamp', { ascending: false, foreignTable: 'wpp_messages' })
+    .limit(1, { foreignTable: 'wpp_messages' });
   if (error) {
     console.error('Error fetching conversations:', error);
   }

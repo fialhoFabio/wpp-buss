@@ -4,12 +4,33 @@ import { useEffect, useRef, useState } from 'react';
 import { dbGetConversations, dbGetMessages, supabase } from 'lib/supabase';
 import type { Database } from 'types/database.types';
 
-type Conversation = Database['public']['Tables']['wpp_conversations']['Row'];
+type ConversationRow = Database['public']['Tables']['wpp_conversations']['Row'];
+type LastMessagePreview = Pick<Database['public']['Tables']['wpp_messages']['Row'], 'message_content' | 'message_type' | 'timestamp'>;
+type Conversation = ConversationRow & { wpp_messages: LastMessagePreview[] };
 type Message = Database['public']['Tables']['wpp_messages']['Row'];
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+function getPreviewText(preview: LastMessagePreview): string {
+  const content = preview.message_content as Record<string, unknown> | null;
+  if (!content) return `[${preview.message_type}]`;
+  if (typeof content['body'] === 'string') return content['body'];
+  const text = content['text'];
+  if (text && typeof text === 'object' && typeof (text as Record<string, unknown>)['body'] === 'string') {
+    return (text as Record<string, unknown>)['body'] as string;
+  }
+  if (typeof content['caption'] === 'string') return content['caption'];
+  if (preview.message_type === 'image') return '📷 Imagem';
+  if (preview.message_type === 'audio') return '🎵 Áudio';
+  if (preview.message_type === 'video') return '🎬 Vídeo';
+  if (preview.message_type === 'document') return '📄 Documento';
+  if (preview.message_type === 'sticker') return '🎨 Sticker';
+  if (preview.message_type === 'location') return '📍 Localização';
+  if (preview.message_type === 'reaction') return '👍 Reação';
+  return `[${preview.message_type}]`;
+}
 
 function getMessageText(message: Message): string {
   const content = message.message_content as Record<string, unknown> | null;
@@ -61,36 +82,49 @@ function getInitials(name: string | null, phone: string): string {
 const ConversationItem = ({
   conversation,
   isSelected,
+  hasUnread,
   onClick,
 }: {
   conversation: Conversation;
   isSelected: boolean;
+  hasUnread: boolean;
   onClick: () => void;
-}) => (
-  <button
-    onClick={onClick}
-    className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-100 ${
-      isSelected ? 'bg-gray-100' : ''
-    }`}
-  >
-    <div className='flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-emerald-500 text-lg font-semibold text-white'>
-      {getInitials(conversation.contact_name, conversation.contact_phone)}
-    </div>
-    <div className='min-w-0 flex-1'>
-      <div className='flex items-center justify-between gap-2'>
-        <span className='truncate text-sm font-semibold text-gray-900'>
-          {conversation.contact_name || conversation.contact_phone}
-        </span>
-        <span className='flex-shrink-0 text-xs text-gray-500'>
-          {formatConversationDate(conversation.last_message_at)}
-        </span>
+}) => {
+  const lastMsg = conversation.wpp_messages[0] ?? null;
+  return (
+    <button
+      onClick={onClick}
+      className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-100 ${
+        isSelected ? 'bg-gray-100' : ''
+      }`}
+    >
+      <div className='relative flex-shrink-0'>
+        <div className='flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-lg font-semibold text-white'>
+          {getInitials(conversation.contact_name, conversation.contact_phone)}
+        </div>
+        {hasUnread && (
+          <span className='absolute right-0 top-0 flex h-3 w-3'>
+            <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75' />
+            <span className='relative inline-flex h-3 w-3 rounded-full bg-emerald-500' />
+          </span>
+        )}
       </div>
-      <p className='truncate text-xs text-gray-500'>
-        {conversation.display_phone_number || conversation.contact_phone}
-      </p>
-    </div>
-  </button>
-);
+      <div className='min-w-0 flex-1'>
+        <div className='flex items-center justify-between gap-2'>
+          <span className={`truncate text-sm ${hasUnread ? 'font-bold text-gray-900' : 'font-semibold text-gray-900'}`}>
+            {conversation.contact_name || conversation.contact_phone}
+          </span>
+          <span className='flex-shrink-0 text-xs text-gray-500'>
+            {formatConversationDate(conversation.last_message_at)}
+          </span>
+        </div>
+        <p className={`truncate text-xs ${hasUnread ? 'font-semibold text-gray-800' : 'text-gray-500'}`}>
+          {lastMsg ? getPreviewText(lastMsg) : conversation.display_phone_number || conversation.contact_phone}
+        </p>
+      </div>
+    </button>
+  );
+};
 
 const MessageBubble = ({ message }: { message: Message }) => {
   const text = getMessageText(message);
@@ -133,6 +167,7 @@ export const ConversationsChat = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [search, setSearch] = useState('');
+  const [unreadIds, setUnreadIds] = useState<Set<string>>(new Set());
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const selectedConversation = conversations.find((c) => c.id === selectedId) ?? null;
@@ -165,34 +200,46 @@ export const ConversationsChat = () => {
     });
   }, [selectedId]);
 
-  // Real-time: new messages for selected conversation
+  // Clear unread when a conversation is selected
   useEffect(() => {
     if (!selectedId) return;
-    const msgChannel = supabase
-      .channel(`wpp:conversation:${selectedId}:messages`, { config: { private: true } })
-      .on('broadcast', { event: 'INSERT' }, () => {
-        dbGetMessages(selectedId).then(({ data }) => setMessages(data));
-        dbGetConversations().then(({ data }) => setConversations(data));
-      })
-      .subscribe();
-    return () => {
-      supabase.removeChannel(msgChannel);
-    };
+    setUnreadIds((prev) => {
+      if (!prev.has(selectedId)) return prev;
+      const next = new Set(prev);
+      next.delete(selectedId);
+      return next;
+    });
   }, [selectedId]);
 
-  // Real-time: conversation row updates (e.g. last_message_at)
+  // Real-time: subscribe to ALL loaded conversations
   useEffect(() => {
-    if (!selectedId) return;
-    const convoChannel = supabase
-      .channel(`wpp:conversation:${selectedId}`, { config: { private: true } })
-      .on('broadcast', { event: 'UPDATE' }, () => {
-        dbGetConversations().then(({ data }) => setConversations(data));
-      })
-      .subscribe();
+    if (conversations.length === 0) return;
+
+    const channels = conversations.map((c) =>
+      supabase
+        .channel(`wpp:conversation:${c.id}:messages`, { config: { private: true } })
+        .on('broadcast', { event: 'INSERT' }, () => {
+          // Refresh conversation list (last message preview)
+          dbGetConversations().then(({ data }) => setConversations(data));
+          // If this is the open conversation, refresh messages; otherwise mark unread
+          setSelectedId((currentId) => {
+            if (currentId === c.id) {
+              dbGetMessages(c.id).then(({ data }) => setMessages(data));
+            } else {
+              setUnreadIds((prev) => new Set(prev).add(c.id));
+            }
+            return currentId;
+          });
+        })
+        .subscribe()
+    );
+
     return () => {
-      supabase.removeChannel(convoChannel);
+      channels.forEach((ch) => supabase.removeChannel(ch));
     };
-  }, [selectedId]);
+  // Re-subscribe only when the conversation list itself changes (new conversations loaded)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [conversations.length]);
 
   // Auto-scroll to bottom on new messages
   useEffect(() => {
@@ -249,6 +296,7 @@ export const ConversationsChat = () => {
                 key={conversation.id}
                 conversation={conversation}
                 isSelected={selectedId === conversation.id}
+                hasUnread={unreadIds.has(conversation.id)}
                 onClick={() => setSelectedId(conversation.id)}
               />
             ))
