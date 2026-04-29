@@ -3,6 +3,7 @@ import type { Database } from 'types/database.types';
 export type LastMessagePreview = Pick<Database['public']['Tables']['wpp_messages']['Row'], 'message_content' | 'message_type' | 'timestamp'>;
 export type Conversation = Database['public']['Tables']['wpp_conversations']['Row'] & { wpp_messages: LastMessagePreview[] };
 export type Message = Database['public']['Tables']['wpp_messages']['Row'];
+export type PendingMessage = { tempId: string; text: string };
 
 function extractText(content: Record<string, unknown>, type: string): string | null {
   if (typeof content['body'] === 'string') return content['body'];

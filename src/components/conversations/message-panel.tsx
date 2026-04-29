@@ -1,11 +1,9 @@
 'use client';
 
-import { useRef, useEffect, useState, useCallback } from 'react';
-import { type Conversation, type Message, getMessageText, formatTime, getInitials } from './chat-utils';
-import { sendFreeMessage } from 'lib/messaging';
+import { type Conversation, type Message, type PendingMessage, getMessageText, formatTime, getInitials } from './chat-utils';
 import { ClockIcon, SingleCheckIcon, TemplateBadge, ButtonBadge } from './icons';
-
-type PendingMessage = { tempId: string; text: string };
+import { useMessageSend } from './use-message-send';
+import { useScrollToBottom } from './use-scroll-to-bottom';
 
 
 const MessageBubble = ({ message, pending = false }: { message: Message | PendingMessage; pending?: boolean }) => {
@@ -54,47 +52,8 @@ export const MessagePanel = ({
   isActive: boolean;
   onMessageSent: () => void;
 }) => {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const pendingRemoval = useRef<Set<string>>(new Set());
-  const [text, setText] = useState('');
-  const [pending, setPending] = useState<PendingMessage[]>([]);
-  const [failedText, setFailedText] = useState<string | null>(null);
-
-  // Remove pending bubbles on whichever messages update arrives first (realtime or explicit fetch)
-  useEffect(() => {
-    if (pendingRemoval.current.size === 0) return;
-    const toRemove = pendingRemoval.current;
-    pendingRemoval.current = new Set();
-    setPending((prev) => prev.filter((p) => !toRemove.has(p.tempId)));
-  }, [messages]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, pending]);
-
-  const handleSend = useCallback(async () => {
-    if (!conversation || !text.trim()) return;
-    const snapshot = text.trim();
-    const tempId = crypto.randomUUID();
-    setText('');
-    setFailedText(null);
-    setPending((prev) => [...prev, { tempId, text: snapshot }]);
-    const { error } = await sendFreeMessage(conversation.phone_number_id, conversation.contact_phone, snapshot);
-    if (error) {
-      setPending((prev) => prev.filter((p) => p.tempId !== tempId));
-      setFailedText(snapshot);
-    } else {
-      pendingRemoval.current.add(tempId);
-      onMessageSent();
-    }
-  }, [conversation, text, onMessageSent]);
-
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      void handleSend();
-    }
-  };
+  const { text, setText, pending, failedText, setFailedText, handleSend, handleKeyDown } = useMessageSend(conversation, messages, onMessageSent);
+  const messagesEndRef = useScrollToBottom(messages, pending);
 
   if (!conversation) return <EmptyPanel />;
 
