@@ -94,6 +94,10 @@ export const ConversationsChat = () => {
         messages={messages}
         loading={loadingMessages}
         isActive={selectedId !== null && activeIds.has(selectedId)}
+        onMessageSent={() => {
+          if (selectedId) return dbGetMessages(selectedId).then(({ data }) => setMessages(data));
+          return Promise.resolve();
+        }}
       />
     </div>
   );

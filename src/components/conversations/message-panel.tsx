@@ -1,7 +1,10 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { type Conversation, type Message, getMessageText, formatTime, getInitials } from './chat-utils';
+import { sendFreeMessage } from 'lib/messaging';
+
+type PendingMessage = { tempId: string; text: string };
 
 const TemplateBadge = () => (
   <span className='mb-1 inline-block rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-blue-600'>Template</span>
@@ -27,6 +30,15 @@ const MessageBubble = ({ message }: { message: Message }) => {
   );
 };
 
+const PendingBubble = ({ text }: { text: string }) => (
+  <div className='flex justify-end'>
+    <div className='max-w-[70%] rounded-lg rounded-tr-none bg-[#d9fdd3] px-3 py-2 opacity-70 shadow-sm'>
+      <p className='whitespace-pre-wrap break-words text-sm text-gray-900'>{text}</p>
+      <p className='mt-1 text-right text-[10px] text-gray-400'>enviando...</p>
+    </div>
+  </div>
+);
+
 const EmptyPanel = () => (
   <div className='flex flex-1 flex-col items-center justify-center bg-[#f0f2f5]'>
     <div className='flex h-24 w-24 items-center justify-center rounded-full bg-gray-200'>
@@ -44,17 +56,46 @@ export const MessagePanel = ({
   messages,
   loading,
   isActive,
+  onMessageSent,
 }: {
   conversation: Conversation | null;
   messages: Message[];
   loading: boolean;
   isActive: boolean;
+  onMessageSent: () => Promise<void>;
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [text, setText] = useState('');
+  const [pending, setPending] = useState<PendingMessage[]>([]);
+  const [failedText, setFailedText] = useState<string | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  }, [messages, pending]);
+
+  const handleSend = useCallback(async () => {
+    if (!conversation || !text.trim()) return;
+    const snapshot = text.trim();
+    const tempId = crypto.randomUUID();
+    setText('');
+    setFailedText(null);
+    setPending((prev) => [...prev, { tempId, text: snapshot }]);
+    const { error } = await sendFreeMessage(conversation.phone_number_id, conversation.contact_phone, snapshot);
+    if (error) {
+      setPending((prev) => prev.filter((p) => p.tempId !== tempId));
+      setFailedText(snapshot);
+    } else {
+      await onMessageSent();
+      setPending((prev) => prev.filter((p) => p.tempId !== tempId));
+    }
+  }, [conversation, text, onMessageSent]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      void handleSend();
+    }
+  };
 
   if (!conversation) return <EmptyPanel />;
 
@@ -98,19 +139,46 @@ export const MessagePanel = ({
         ) : (
           <div className='space-y-2'>
             {messages.map((message) => <MessageBubble key={message.id} message={message} />)}
+            {pending.map((p) => <PendingBubble key={p.tempId} text={p.text} />)}
             <div ref={messagesEndRef} />
           </div>
         )}
       </div>
 
+      {failedText && (
+        <div className='flex items-center justify-between border-t border-red-200 bg-red-50 px-4 py-2 text-xs text-red-600'>
+          <span>Falha ao enviar: &quot;{failedText}&quot;</span>
+          <button
+            onClick={() => { setText(failedText); setFailedText(null); }}
+            className='ml-2 font-medium underline'
+          >
+            Tentar novamente
+          </button>
+        </div>
+      )}
       <div className='flex items-center gap-3 border-t border-gray-200 bg-white px-4 py-3'>
         <input
           type='text'
-          placeholder='Resposta em breve...'
-          disabled
-          className='flex-1 cursor-not-allowed rounded-full bg-gray-100 px-4 py-2 text-sm text-gray-400 outline-none'
+          placeholder={isActive ? 'Digite uma mensagem...' : 'Janela encerrada — envio indisponível'}
+          disabled={!isActive}
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className={`flex-1 rounded-full px-4 py-2 text-sm outline-none ${
+            isActive
+              ? 'bg-gray-100 text-gray-900 focus:bg-white focus:ring-2 focus:ring-emerald-400'
+              : 'cursor-not-allowed bg-gray-100 text-gray-400'
+          }`}
         />
-        <button disabled className='flex h-10 w-10 flex-shrink-0 cursor-not-allowed items-center justify-center rounded-full bg-gray-200 text-gray-400'>
+        <button
+          disabled={!isActive || !text.trim()}
+          onClick={() => void handleSend()}
+          className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full ${
+            isActive && text.trim()
+              ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+              : 'cursor-not-allowed bg-gray-200 text-gray-400'
+          }`}
+        >
           <svg className='h-5 w-5' fill='currentColor' viewBox='0 0 24 24'>
             <path d='M2.01 21L23 12 2.01 3 2 10l15 2-15 2z' />
           </svg>
