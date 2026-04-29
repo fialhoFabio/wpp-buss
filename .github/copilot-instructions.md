@@ -62,9 +62,16 @@ public/
 
 ### Waku pages
 - Full Waku documentation for AI: https://waku.gg/llms.txt
-- Every page file exports a default async function (RSC) and `export const getConfig = async () => ({ render: 'static' } as const)`.
-- Client-only logic lives in components marked `'use client'`. Never mix server and client in the same file.
-- Server actions / server-only helpers are marked `'use server'` (e.g. `src/lib/facebook.ts`).
+- File-based routing lives in `./src/pages`. Every page and layout exports a default React component and a named `getConfig` that returns `{ render: 'static' }` (SSG) or `{ render: 'dynamic' }` (SSR). `'static'` is the default for pages and layouts.
+- **Layouts**: `_layout.tsx` files wrap the route and all descendants. Must accept `children: ReactNode`. Root layout is `./src/pages/_layout.tsx`.
+- **Segment routes**: `[slug].tsx` → receives `slug` as prop. Nested: `[category]/[product].tsx`. Catch-all: `[...catchAll].tsx`. Static segment routes require a `staticPaths` array in `getConfig`.
+- **Group routes**: directories named `(group)` organise routes without affecting URLs — useful for scoping layouts.
+- **API routes**: files in `./src/pages/_api/` export named HTTP method handlers (`GET`, `POST`, etc.) or a default catch-all. Dynamic by default; can export `getConfig` with `render: 'static'` for static resources.
+- **Ignored directories**: `_components` and `_hooks` inside `pages/` are not routed.
+- **Client components**: mark with `'use client'` at the top of the file. This creates a server–client boundary — all components imported below the boundary are hydrated in the browser. Never mix server and client logic in the same file.
+- **Server actions**: mark with `'use server'` inside a function body (inline) or at the top of a file (marks all exports). This is **not** the same as a server component — do **not** place it at the top of RSC files.
+- **Navigation**: use `<Link to="...">` from `waku` for internal links; `useRouter()` hook for programmatic navigation (`router.push`, `router.replace`, `router.back`, etc.).
+- **Environment variables**: server-side use `getEnv('VAR_NAME')` from `waku`; client-side use `import.meta.env.WAKU_PUBLIC_*` (must have `WAKU_PUBLIC_` prefix to be public).
 - Path aliases are configured in both `tsconfig.json` and `waku.config.ts`: `components/`, `lib/`, `pages/`, `types/`.
 
 ### TypeScript
