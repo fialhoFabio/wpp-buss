@@ -7,3 +7,4 @@ dist
 *.pem
 .vercel
 .env*.local
+supabase/.temp
