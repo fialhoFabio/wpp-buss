@@ -235,6 +235,13 @@ export type Database = {
             foreignKeyName: "wpp_messages_conversation_id_fkey"
             columns: ["conversation_id"]
             isOneToOne: false
+            referencedRelation: "wpp_active_conversations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wpp_messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
             referencedRelation: "wpp_conversations"
             referencedColumns: ["id"]
           },
@@ -242,7 +249,23 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      wpp_active_conversations: {
+        Row: {
+          contact_name: string | null
+          contact_phone: string | null
+          created_at: string | null
+          display_phone_number: string | null
+          id: string | null
+          is_active: boolean | null
+          last_inbound_at: string | null
+          last_message_at: string | null
+          owner_id: string | null
+          phone_number_id: string | null
+          updated_at: string | null
+          waba_id: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { dbGetConversations, dbGetMessages, supabase } from 'lib/supabase';
+import { dbGetConversations, dbGetMessages, dbGetActiveConversationIds, supabase } from 'lib/supabase';
 import { type Conversation, type Message } from './chat-utils';
 import { ConversationSidebar } from './conversation-sidebar';
 import { MessagePanel } from './message-panel';
@@ -14,6 +14,7 @@ export const ConversationsChat = () => {
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [search, setSearch] = useState('');
   const [unreadIds, setUnreadIds] = useState<Set<string>>(new Set());
+  const [activeIds, setActiveIds] = useState<Set<string>>(new Set());
 
   const selectedConversation = conversations.find((c) => c.id === selectedId) ?? null;
 
@@ -28,6 +29,7 @@ export const ConversationsChat = () => {
       setConversations(data);
       setLoadingConversations(false);
     });
+    dbGetActiveConversationIds().then(setActiveIds);
   }, []);
 
   useEffect(() => {
@@ -59,6 +61,7 @@ export const ConversationsChat = () => {
         .channel(`wpp:conversation:${c.id}:messages`, { config: { private: true } })
         .on('broadcast', { event: 'INSERT' }, () => {
           dbGetConversations().then(({ data }) => setConversations(data));
+          dbGetActiveConversationIds().then(setActiveIds);
           setSelectedId((currentId) => {
             if (currentId === c.id) {
               dbGetMessages(c.id).then(({ data }) => setMessages(data));
@@ -81,6 +84,7 @@ export const ConversationsChat = () => {
         loading={loadingConversations}
         selectedId={selectedId}
         unreadIds={unreadIds}
+        activeIds={activeIds}
         search={search}
         onSearchChange={setSearch}
         onSelect={setSelectedId}
@@ -89,6 +93,7 @@ export const ConversationsChat = () => {
         conversation={selectedConversation}
         messages={messages}
         loading={loadingMessages}
+        isActive={selectedId !== null && activeIds.has(selectedId)}
       />
     </div>
   );

@@ -12,6 +12,10 @@ function extractText(content: Record<string, unknown>, type: string): string | n
     return (text as Record<string, unknown>)['body'] as string;
   }
   if (typeof content['caption'] === 'string') return content['caption'];
+  if (type === 'template') {
+    const name = typeof content['name'] === 'string' ? content['name'] : null;
+    return name ? `📋 ${name}` : '📋 Template';
+  }
   const mediaLabels: Record<string, string> = {
     image: '📷 Imagem', audio: '🎵 Áudio', video: '🎬 Vídeo',
     document: '📄 Documento', sticker: '🎨 Sticker', location: '📍 Localização', reaction: '👍 Reação',

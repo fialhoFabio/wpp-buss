@@ -9,15 +9,24 @@ const UnreadDot = () => (
   </span>
 );
 
+const WindowDot = ({ open }: { open: boolean }) => (
+  <span
+    title={open ? 'Janela de 24h aberta' : 'Janela de 24h encerrada'}
+    className={`absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white ${open ? 'bg-emerald-500' : 'bg-red-400'}`}
+  />
+);
+
 const ConversationItem = ({
   conversation,
   isSelected,
   hasUnread,
+  isActive,
   onClick,
 }: {
   conversation: Conversation;
   isSelected: boolean;
   hasUnread: boolean;
+  isActive: boolean;
   onClick: () => void;
 }) => {
   const lastMsg: LastMessagePreview | null = conversation.wpp_messages[0] ?? null;
@@ -31,6 +40,7 @@ const ConversationItem = ({
           {getInitials(conversation.contact_name, conversation.contact_phone)}
         </div>
         {hasUnread && <UnreadDot />}
+        <WindowDot open={isActive} />
       </div>
       <div className='min-w-0 flex-1'>
         <div className='flex items-center justify-between gap-2'>
@@ -54,6 +64,7 @@ export const ConversationSidebar = ({
   loading,
   selectedId,
   unreadIds,
+  activeIds,
   search,
   onSearchChange,
   onSelect,
@@ -62,6 +73,7 @@ export const ConversationSidebar = ({
   loading: boolean;
   selectedId: string | null;
   unreadIds: Set<string>;
+  activeIds: Set<string>;
   search: string;
   onSearchChange: (value: string) => void;
   onSelect: (id: string) => void;
@@ -102,6 +114,7 @@ export const ConversationSidebar = ({
               conversation={c}
               isSelected={selectedId === c.id}
               hasUnread={unreadIds.has(c.id)}
+              isActive={activeIds.has(c.id)}
               onClick={() => onSelect(c.id)}
             />
           ))

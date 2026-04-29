@@ -82,6 +82,14 @@ export const dbGetWhatsappNumbers = async () => {
   return { data, error };
 };
 
+export const dbGetActiveConversationIds = async (): Promise<Set<string>> => {
+  const { data } = await supabase
+    .from('wpp_active_conversations')
+    .select('id')
+    .eq('is_active', true);
+  return new Set((data ?? []).map((r) => r.id).filter((id): id is string => id !== null));
+};
+
 export const dbGetConversations = async () => {
   const { data, error } = await supabase
     .from('wpp_conversations')
