@@ -64,14 +64,6 @@ export const dbGetWhatsappAccounts = async () => {
   return { data: data ?? [], error };
 };
 
-export const dbGetWhatsappNumbers = async () => {
-  const { data, error } = await supabase
-    .from('whatsapp_phone_numbers')
-    .select('*');
-  if (error) console.error('Error fetching WhatsApp numbers:', error);
-  return { data: data ?? [], error };
-};
-
 export const dbGetActiveConversationIds = async (): Promise<Set<string>> => {
   const { data } = await supabase
     .from('wpp_active_conversations')

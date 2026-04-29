@@ -15,8 +15,6 @@ import type { getConfig as File_Index_getConfig } from './pages/index';
 import type { getConfig as File_LinkWhatsappAccount_getConfig } from './pages/link-whatsapp-account';
 // prettier-ignore
 import type { getConfig as File_PrivacyPolicy_getConfig } from './pages/privacy-policy';
-// prettier-ignore
-import type { getConfig as File_WhatsappNumbers_getConfig } from './pages/whatsapp-numbers';
 
 // prettier-ignore
 type Page =
@@ -25,8 +23,7 @@ type Page =
 | ({ path: '/conversations' } & GetConfigResponse<typeof File_Conversations_getConfig>)
 | ({ path: '/' } & GetConfigResponse<typeof File_Index_getConfig>)
 | ({ path: '/link-whatsapp-account' } & GetConfigResponse<typeof File_LinkWhatsappAccount_getConfig>)
-| ({ path: '/privacy-policy' } & GetConfigResponse<typeof File_PrivacyPolicy_getConfig>)
-| ({ path: '/whatsapp-numbers' } & GetConfigResponse<typeof File_WhatsappNumbers_getConfig>);
+| ({ path: '/privacy-policy' } & GetConfigResponse<typeof File_PrivacyPolicy_getConfig>);
 
 // prettier-ignore
 declare module 'waku/router' {
