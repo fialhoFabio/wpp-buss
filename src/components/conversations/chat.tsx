@@ -95,8 +95,7 @@ export const ConversationsChat = () => {
         loading={loadingMessages}
         isActive={selectedId !== null && activeIds.has(selectedId)}
         onMessageSent={() => {
-          if (selectedId) return dbGetMessages(selectedId).then(({ data }) => setMessages(data));
-          return Promise.resolve();
+          if (selectedId) void dbGetMessages(selectedId).then(({ data }) => setMessages(data));
         }}
       />
     </div>

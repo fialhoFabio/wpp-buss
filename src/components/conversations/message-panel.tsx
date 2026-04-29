@@ -14,30 +14,23 @@ const ButtonBadge = () => (
   <span className='mb-1 inline-block rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-400'>Resposta de template</span>
 );
 
-const MessageBubble = ({ message }: { message: Message }) => {
-  const isOutbound = message.direction === 'outbound';
-  const isTemplate = message.message_type === 'template';
-  const isButton = message.message_type === 'button';
+const MessageBubble = ({ message, pending = false }: { message: Message | PendingMessage; pending?: boolean }) => {
+  const isOutbound = pending || (message as Message).direction === 'outbound';
+  const isTemplate = !pending && (message as Message).message_type === 'template';
+  const isButton = !pending && (message as Message).message_type === 'button';
+  const text = pending ? (message as PendingMessage).text : getMessageText(message as Message);
+  const timeLabel = pending ? 'enviando...' : formatTime((message as Message).timestamp);
   return (
     <div className={`flex ${isOutbound ? 'justify-end' : 'justify-start'}`}>
-      <div className={`max-w-[70%] px-3 py-2 shadow-sm rounded-lg ${isOutbound ? 'rounded-tr-none bg-[#d9fdd3]' : 'rounded-tl-none bg-white'}`}>
+      <div className={`max-w-[70%] px-3 py-2 shadow-sm rounded-lg ${isOutbound ? 'rounded-tr-none bg-[#d9fdd3]' : 'rounded-tl-none bg-white'} ${pending ? 'opacity-70' : ''}`}>
         {isTemplate && <TemplateBadge />}
         {isButton && <ButtonBadge />}
-        <p className='whitespace-pre-wrap break-words text-sm text-gray-900'>{getMessageText(message)}</p>
-        <p className='mt-1 text-right text-[10px] text-gray-500'>{formatTime(message.timestamp)}</p>
+        <p className='whitespace-pre-wrap break-words text-sm text-gray-900'>{text}</p>
+        <p className={`mt-1 text-right text-[10px] ${pending ? 'text-gray-400' : 'text-gray-500'}`}>{timeLabel}</p>
       </div>
     </div>
   );
 };
-
-const PendingBubble = ({ text }: { text: string }) => (
-  <div className='flex justify-end'>
-    <div className='max-w-[70%] rounded-lg rounded-tr-none bg-[#d9fdd3] px-3 py-2 opacity-70 shadow-sm'>
-      <p className='whitespace-pre-wrap break-words text-sm text-gray-900'>{text}</p>
-      <p className='mt-1 text-right text-[10px] text-gray-400'>enviando...</p>
-    </div>
-  </div>
-);
 
 const EmptyPanel = () => (
   <div className='flex flex-1 flex-col items-center justify-center bg-[#f0f2f5]'>
@@ -62,12 +55,21 @@ export const MessagePanel = ({
   messages: Message[];
   loading: boolean;
   isActive: boolean;
-  onMessageSent: () => Promise<void>;
+  onMessageSent: () => void;
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const pendingRemoval = useRef<Set<string>>(new Set());
   const [text, setText] = useState('');
   const [pending, setPending] = useState<PendingMessage[]>([]);
   const [failedText, setFailedText] = useState<string | null>(null);
+
+  // Remove pending bubbles on whichever messages update arrives first (realtime or explicit fetch)
+  useEffect(() => {
+    if (pendingRemoval.current.size === 0) return;
+    const toRemove = pendingRemoval.current;
+    pendingRemoval.current = new Set();
+    setPending((prev) => prev.filter((p) => !toRemove.has(p.tempId)));
+  }, [messages]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -85,8 +87,8 @@ export const MessagePanel = ({
       setPending((prev) => prev.filter((p) => p.tempId !== tempId));
       setFailedText(snapshot);
     } else {
-      await onMessageSent();
-      setPending((prev) => prev.filter((p) => p.tempId !== tempId));
+      pendingRemoval.current.add(tempId);
+      onMessageSent();
     }
   }, [conversation, text, onMessageSent]);
 
@@ -139,7 +141,7 @@ export const MessagePanel = ({
         ) : (
           <div className='space-y-2'>
             {messages.map((message) => <MessageBubble key={message.id} message={message} />)}
-            {pending.map((p) => <PendingBubble key={p.tempId} text={p.text} />)}
+            {pending.map((p) => <MessageBubble key={p.tempId} message={p} pending />)}
             <div ref={messagesEndRef} />
           </div>
         )}
