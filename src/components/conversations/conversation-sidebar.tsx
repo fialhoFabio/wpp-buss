@@ -16,6 +16,13 @@ const WindowDot = ({ open }: { open: boolean }) => (
   />
 );
 
+const WindowPill = ({ open }: { open: boolean }) =>
+  open ? (
+    <span className='flex-shrink-0 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700'>
+      Aberta
+    </span>
+  ) : null;
+
 const ConversationItem = ({
   conversation,
   isSelected,
@@ -47,9 +54,12 @@ const ConversationItem = ({
           <span className={`truncate text-sm ${hasUnread ? 'font-bold' : 'font-semibold'} text-gray-900`}>
             {conversation.contact_name || conversation.contact_phone}
           </span>
-          <span className='flex-shrink-0 text-xs text-gray-500'>
-            {formatConversationDate(conversation.last_message_at)}
-          </span>
+          <div className='flex flex-shrink-0 items-center gap-1'>
+            <WindowPill open={isActive} />
+            <span className='text-xs text-gray-500'>
+              {formatConversationDate(conversation.last_message_at)}
+            </span>
+          </div>
         </div>
         <p className={`truncate text-xs ${hasUnread ? 'font-semibold text-gray-800' : 'text-gray-500'}`}>
           {lastMsg ? getPreviewText(lastMsg) : conversation.display_phone_number || conversation.contact_phone}
