@@ -60,26 +60,16 @@ export const dbGetWhatsappAccounts = async () => {
   const { data, error } = await supabase
     .from('whatsapp_accounts')
     .select('*');
-  if (error) {
-    console.error('Error fetching WhatsApp accounts:', error);
-  }
-  if (data === null) {
-    return { data: [], error };
-  }
-  return { data, error };
+  if (error) console.error('Error fetching WhatsApp accounts:', error);
+  return { data: data ?? [], error };
 };
 
 export const dbGetWhatsappNumbers = async () => {
   const { data, error } = await supabase
     .from('whatsapp_phone_numbers')
     .select('*');
-  if (error) {
-    console.error('Error fetching WhatsApp numbers:', error);
-  }
-  if (data === null) {
-    return { data: [], error };
-  }
-  return { data, error };
+  if (error) console.error('Error fetching WhatsApp numbers:', error);
+  return { data: data ?? [], error };
 };
 
 export const dbGetActiveConversationIds = async (): Promise<Set<string>> => {
@@ -97,13 +87,8 @@ export const dbGetConversations = async () => {
     .order('last_message_at', { ascending: false })
     .order('timestamp', { ascending: false, foreignTable: 'wpp_messages' })
     .limit(1, { foreignTable: 'wpp_messages' });
-  if (error) {
-    console.error('Error fetching conversations:', error);
-  }
-  if (data === null) {
-    return { data: [], error };
-  }
-  return { data, error };
+  if (error) console.error('Error fetching conversations:', error);
+  return { data: data ?? [], error };
 };
 
 export const dbGetMessages = async (conversationId: string) => {
@@ -112,13 +97,8 @@ export const dbGetMessages = async (conversationId: string) => {
     .select('*')
     .eq('conversation_id', conversationId)
     .order('timestamp', { ascending: true });
-  if (error) {
-    console.error('Error fetching messages:', error);
-  }
-  if (data === null) {
-    return { data: [], error };
-  }
-  return { data, error };
+  if (error) console.error('Error fetching messages:', error);
+  return { data: data ?? [], error };
 };
 
 export const dbDeleteWhatsappAccount = async (id: string) => {

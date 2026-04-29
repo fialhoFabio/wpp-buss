@@ -1,8 +1,7 @@
 import type { Database } from 'types/database.types';
 
-export type ConversationRow = Database['public']['Tables']['wpp_conversations']['Row'];
 export type LastMessagePreview = Pick<Database['public']['Tables']['wpp_messages']['Row'], 'message_content' | 'message_type' | 'timestamp'>;
-export type Conversation = ConversationRow & { wpp_messages: LastMessagePreview[] };
+export type Conversation = Database['public']['Tables']['wpp_conversations']['Row'] & { wpp_messages: LastMessagePreview[] };
 export type Message = Database['public']['Tables']['wpp_messages']['Row'];
 
 function extractText(content: Record<string, unknown>, type: string): string | null {
