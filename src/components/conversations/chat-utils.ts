@@ -6,6 +6,7 @@ export type Message = Database['public']['Tables']['wpp_messages']['Row'];
 
 function extractText(content: Record<string, unknown>, type: string): string | null {
   if (typeof content['body'] === 'string') return content['body'];
+  if (typeof content['text'] === 'string') return content['text'];
   const text = content['text'];
   if (text && typeof text === 'object' && typeof (text as Record<string, unknown>)['body'] === 'string') {
     return (text as Record<string, unknown>)['body'] as string;

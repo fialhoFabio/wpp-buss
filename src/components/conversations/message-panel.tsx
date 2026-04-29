@@ -7,13 +7,19 @@ const TemplateBadge = () => (
   <span className='mb-1 inline-block rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-blue-600'>Template</span>
 );
 
+const ButtonBadge = () => (
+  <span className='mb-1 inline-block rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-400'>Resposta de template</span>
+);
+
 const MessageBubble = ({ message }: { message: Message }) => {
   const isOutbound = message.direction === 'outbound';
   const isTemplate = message.message_type === 'template';
+  const isButton = message.message_type === 'button';
   return (
     <div className={`flex ${isOutbound ? 'justify-end' : 'justify-start'}`}>
       <div className={`max-w-[70%] px-3 py-2 shadow-sm rounded-lg ${isOutbound ? 'rounded-tr-none bg-[#d9fdd3]' : 'rounded-tl-none bg-white'}`}>
         {isTemplate && <TemplateBadge />}
+        {isButton && <ButtonBadge />}
         <p className='whitespace-pre-wrap break-words text-sm text-gray-900'>{getMessageText(message)}</p>
         <p className='mt-1 text-right text-[10px] text-gray-500'>{formatTime(message.timestamp)}</p>
       </div>
