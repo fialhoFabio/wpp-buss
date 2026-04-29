@@ -14,6 +14,20 @@ const ButtonBadge = () => (
   <span className='mb-1 inline-block rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-400'>Resposta de template</span>
 );
 
+const ClockIcon = () => (
+  <svg className='inline h-3 w-3 text-gray-400' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
+    <circle cx='12' cy='12' r='10' />
+    <polyline points='12 6 12 12 16 14' />
+  </svg>
+);
+
+const SingleCheckIcon = () => (
+  <svg className='inline h-3 w-3 text-gray-500' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5'>
+    <polyline points='20 6 9 17 4 12' />
+  </svg>
+);
+
+
 const MessageBubble = ({ message, pending = false }: { message: Message | PendingMessage; pending?: boolean }) => {
   const isOutbound = pending || (message as Message).direction === 'outbound';
   const isTemplate = !pending && (message as Message).message_type === 'template';
@@ -26,7 +40,10 @@ const MessageBubble = ({ message, pending = false }: { message: Message | Pendin
         {isTemplate && <TemplateBadge />}
         {isButton && <ButtonBadge />}
         <p className='whitespace-pre-wrap break-words text-sm text-gray-900'>{text}</p>
-        <p className={`mt-1 text-right text-[10px] ${pending ? 'text-gray-400' : 'text-gray-500'}`}>{timeLabel}</p>
+        <p className={`mt-1 flex items-center justify-end gap-1 text-[10px] ${pending ? 'text-gray-400' : 'text-gray-500'}`}>
+          {timeLabel}
+          {isOutbound && (pending ? <ClockIcon /> : <SingleCheckIcon />)}
+        </p>
       </div>
     </div>
   );
