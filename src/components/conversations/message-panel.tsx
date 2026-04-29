@@ -3,29 +3,9 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { type Conversation, type Message, getMessageText, formatTime, getInitials } from './chat-utils';
 import { sendFreeMessage } from 'lib/messaging';
+import { ClockIcon, SingleCheckIcon, TemplateBadge, ButtonBadge } from './icons';
 
 type PendingMessage = { tempId: string; text: string };
-
-const TemplateBadge = () => (
-  <span className='mb-1 inline-block rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wide text-blue-600'>Template</span>
-);
-
-const ButtonBadge = () => (
-  <span className='mb-1 inline-block rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-400'>Resposta de template</span>
-);
-
-const ClockIcon = () => (
-  <svg className='inline h-3 w-3 text-gray-400' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2'>
-    <circle cx='12' cy='12' r='10' />
-    <polyline points='12 6 12 12 16 14' />
-  </svg>
-);
-
-const SingleCheckIcon = () => (
-  <svg className='inline h-3 w-3 text-gray-500' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5'>
-    <polyline points='20 6 9 17 4 12' />
-  </svg>
-);
 
 
 const MessageBubble = ({ message, pending = false }: { message: Message | PendingMessage; pending?: boolean }) => {
