@@ -3,14 +3,17 @@
 import { useRef, useEffect } from 'react';
 import { type Conversation, type Message, getMessageText, formatTime, getInitials } from './chat-utils';
 
-const MessageBubble = ({ message }: { message: Message }) => (
-  <div className='flex justify-start'>
-    <div className='max-w-[70%] rounded-lg rounded-tl-none bg-white px-3 py-2 shadow-sm'>
-      <p className='whitespace-pre-wrap break-words text-sm text-gray-900'>{getMessageText(message)}</p>
-      <p className='mt-1 text-right text-[10px] text-gray-500'>{formatTime(message.timestamp)}</p>
+const MessageBubble = ({ message }: { message: Message }) => {
+  const isOutbound = message.direction === 'outbound';
+  return (
+    <div className={`flex ${isOutbound ? 'justify-end' : 'justify-start'}`}>
+      <div className={`max-w-[70%] px-3 py-2 shadow-sm rounded-lg ${isOutbound ? 'rounded-tr-none bg-[#d9fdd3]' : 'rounded-tl-none bg-white'}`}>
+        <p className='whitespace-pre-wrap break-words text-sm text-gray-900'>{getMessageText(message)}</p>
+        <p className='mt-1 text-right text-[10px] text-gray-500'>{formatTime(message.timestamp)}</p>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const EmptyPanel = () => (
   <div className='flex flex-1 flex-col items-center justify-center bg-[#f0f2f5]'>
