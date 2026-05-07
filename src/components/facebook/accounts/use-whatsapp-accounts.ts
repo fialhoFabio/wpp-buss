@@ -21,6 +21,8 @@ export const useWhatsappAccounts = () => {
     const initialAccounts = data.map(acc => ({
       ...acc,
       verificationStatus: acc.waba_id ? 'checking' : undefined,
+      isExpanded: !!acc.waba_id,
+      loadingNumbers: !!acc.waba_id,
     })) as AccountWithVerification[];
 
     setAccounts(initialAccounts);
@@ -37,12 +39,51 @@ export const useWhatsappAccounts = () => {
                 ...acc,
                 verificationStatus: result.valid ? 'valid' : 'invalid',
                 display_name: result.name || acc.display_name,
+                loadingNumbers: result.valid ? true : false,
               }
             : acc
         ));
 
         if (result.valid && result.name && result.name !== account.display_name) {
           await dbUpdateWhatsappAccountName(account.id, result.name);
+        }
+
+        if (result.valid && account.waba_id) {
+          try {
+            const response = await getWabaNumbers(account.waba_id);
+            const phoneNumbers = response.data.map(num => ({
+              id: num.id,
+              display_phone_number: num.display_phone_number,
+              verified_name: num.verified_name,
+              quality_rating: num.quality_rating,
+              code_verification_status: num.code_verification_status,
+            }));
+            setAccounts(prev => prev.map(acc =>
+              acc.id === account.id ? { ...acc, loadingNumbers: false, phoneNumbers } : acc
+            ));
+            const activeIds = response.data.map(n => n.id);
+            if (activeIds.length > 0) {
+              await dbRemoveStalePhoneNumbers(account.id, activeIds);
+            }
+            response.data.forEach(num => {
+              dbSaveWhatsappNumber({
+                whatsapp_account_id: account.id,
+                phone_number_id: num.id,
+                display_phone_number: num.display_phone_number,
+                verified_name: num.verified_name,
+                quality_rating: num.quality_rating,
+                platform_type: num.platform_type,
+              });
+            });
+          } catch {
+            setAccounts(prev => prev.map(acc =>
+              acc.id === account.id ? { ...acc, loadingNumbers: false } : acc
+            ));
+          }
+        } else {
+          setAccounts(prev => prev.map(acc =>
+            acc.id === account.id ? { ...acc, loadingNumbers: false } : acc
+          ));
         }
       }
     });
