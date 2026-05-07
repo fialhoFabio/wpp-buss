@@ -129,6 +129,25 @@ export const WhatsappAccountsTable = () => {
 
       {isDebugUser && <DebugWabaPanel onAdd={addDebugWaba} />}
 
+      {isDebugUser && debugAccounts.length > 0 && (
+        <div className='overflow-hidden rounded-xl border border-orange-200 bg-white shadow-sm ring-1 ring-orange-100'>
+          <div className='border-b border-orange-100 bg-orange-50/80 px-6 py-4'>
+            <h3 className='text-xs font-semibold uppercase tracking-wide text-orange-500'>🛠 Contas de debug</h3>
+          </div>
+          <div className='divide-y divide-orange-50'>
+            {debugAccounts.map((account) => (
+              <AccountRow
+                key={account.id}
+                account={account}
+                onDelete={removeDebugAccount}
+                onToggleExpand={toggleDebugExpand}
+                onRefreshNumbers={refreshDebugNumbers}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <div className='flex h-64 w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50'>
           <Icons.Spinner className='h-8 w-8 text-blue-500' />
@@ -166,25 +185,6 @@ export const WhatsappAccountsTable = () => {
                 onDelete={deleteAccount}
                 onToggleExpand={toggleExpand}
                 onRefreshNumbers={refreshNumbers}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {isDebugUser && debugAccounts.length > 0 && (
-        <div className='overflow-hidden rounded-xl border border-orange-200 bg-white shadow-sm ring-1 ring-orange-100'>
-          <div className='border-b border-orange-100 bg-orange-50/80 px-6 py-4'>
-            <h3 className='text-xs font-semibold uppercase tracking-wide text-orange-500'>🛠 Contas de debug</h3>
-          </div>
-          <div className='divide-y divide-orange-50'>
-            {debugAccounts.map((account) => (
-              <AccountRow
-                key={account.id}
-                account={account}
-                onDelete={removeDebugAccount}
-                onToggleExpand={toggleDebugExpand}
-                onRefreshNumbers={refreshDebugNumbers}
               />
             ))}
           </div>
