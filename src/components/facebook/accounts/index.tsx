@@ -1,15 +1,97 @@
 'use client';
 
+import { useState } from 'react';
 import { useAuth } from 'lib/useAuth';
 import { FacebookEmbbedSignupButton } from '../embbed-signup-button';
 import { Icons } from './icons';
 import { CopyButton } from './copy-button';
 import { AccountRow } from './account-row';
+import { DebugWabaPanel } from './debug-waba-panel';
 import { useWhatsappAccounts } from './use-whatsapp-accounts';
+import { verifyWabaId } from 'lib/facebook';
+import type { AccountWithVerification } from './types';
+
+const DEBUG_USER_ID = '417202c2-5144-4e36-8c72-d8a48324e781';
+
+const makeDebugAccount = (wabaId: string): AccountWithVerification => ({
+  id: `debug-${wabaId}`,
+  waba_id: wabaId,
+  business_id: 'debug',
+  display_name: `[DEBUG] ${wabaId}`,
+  owner_id: DEBUG_USER_ID,
+  status: 'active',
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  verificationStatus: 'checking',
+});
 
 export const WhatsappAccountsTable = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { accounts, loading, isRefreshing, refresh, deleteAccount, toggleExpand, refreshNumbers } = useWhatsappAccounts();
+  const [debugAccounts, setDebugAccounts] = useState<AccountWithVerification[]>([]);
+
+  const isDebugUser = !authLoading && user?.id === DEBUG_USER_ID;
+
+  const addDebugWaba = async (wabaId: string) => {
+    if (debugAccounts.some(a => a.waba_id === wabaId)) return;
+    const newAccount = makeDebugAccount(wabaId);
+    setDebugAccounts(prev => [...prev, newAccount]);
+
+    const result = await verifyWabaId(wabaId);
+    setDebugAccounts(prev => prev.map(a =>
+      a.id === newAccount.id
+        ? {
+            ...a,
+            verificationStatus: result.valid ? 'valid' : 'invalid',
+            display_name: result.valid && result.name ? `[DEBUG] ${result.name}` : a.display_name,
+          }
+        : a
+    ));
+  };
+
+  const removeDebugAccount = async (id: string) => {
+    setDebugAccounts(prev => prev.filter(a => a.id !== id));
+  };
+
+  const toggleDebugExpand = async (id: string) => {
+    const account = debugAccounts.find(a => a.id === id);
+    if (!account) return;
+
+    if (account.isExpanded) {
+      setDebugAccounts(prev => prev.map(a => a.id === id ? { ...a, isExpanded: false } : a));
+      return;
+    }
+
+    if (!account.phoneNumbers) {
+      await refreshDebugNumbers(id);
+    }
+    setDebugAccounts(prev => prev.map(a => a.id === id ? { ...a, isExpanded: true } : a));
+  };
+
+  const refreshDebugNumbers = async (id: string) => {
+    // re-use the same logic as real accounts by delegating to refreshNumbers equivalent
+    // The DebugWabaPanel passes a waba_id so we just need to reload numbers for that entry
+    const account = debugAccounts.find(a => a.id === id);
+    if (!account?.waba_id) return;
+    // Mark loading
+    setDebugAccounts(prev => prev.map(a => a.id === id ? { ...a, loadingNumbers: true } : a));
+    try {
+      const { getWabaNumbers } = await import('lib/facebook');
+      const response = await getWabaNumbers(account.waba_id);
+      const phoneNumbers = response.data.map(n => ({
+        id: n.id,
+        display_phone_number: n.display_phone_number,
+        verified_name: n.verified_name,
+        quality_rating: n.quality_rating,
+        code_verification_status: n.code_verification_status,
+      }));
+      setDebugAccounts(prev => prev.map(a =>
+        a.id === id ? { ...a, loadingNumbers: false, phoneNumbers } : a
+      ));
+    } catch {
+      setDebugAccounts(prev => prev.map(a => a.id === id ? { ...a, loadingNumbers: false } : a));
+    }
+  };
 
   return (
     <div className='space-y-6'>
@@ -27,7 +109,7 @@ export const WhatsappAccountsTable = () => {
                 </div>
                 <div className='flex flex-col'>
                   <span className='text-[10px] font-medium text-gray-400 uppercase tracking-wide'>Seu ID</span>
-                  <code className='text-xs font-semibold text-gray-700'>{user.id.substring(0, 8)}...</code>
+                  <code className='text-xs font-semibold text-gray-700'>{user.id}</code>
                 </div>
               </div>
               <CopyButton text={user.id} />
@@ -44,6 +126,8 @@ export const WhatsappAccountsTable = () => {
           <span>{isRefreshing ? 'Atualizando...' : 'Atualizar Lista'}</span>
         </button>
       </div>
+
+      {isDebugUser && <DebugWabaPanel onAdd={addDebugWaba} />}
 
       {loading ? (
         <div className='flex h-64 w-full flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-gray-300 bg-gray-50'>
@@ -82,6 +166,25 @@ export const WhatsappAccountsTable = () => {
                 onDelete={deleteAccount}
                 onToggleExpand={toggleExpand}
                 onRefreshNumbers={refreshNumbers}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {isDebugUser && debugAccounts.length > 0 && (
+        <div className='overflow-hidden rounded-xl border border-orange-200 bg-white shadow-sm ring-1 ring-orange-100'>
+          <div className='border-b border-orange-100 bg-orange-50/80 px-6 py-4'>
+            <h3 className='text-xs font-semibold uppercase tracking-wide text-orange-500'>🛠 Contas de debug</h3>
+          </div>
+          <div className='divide-y divide-orange-50'>
+            {debugAccounts.map((account) => (
+              <AccountRow
+                key={account.id}
+                account={account}
+                onDelete={removeDebugAccount}
+                onToggleExpand={toggleDebugExpand}
+                onRefreshNumbers={refreshDebugNumbers}
               />
             ))}
           </div>
