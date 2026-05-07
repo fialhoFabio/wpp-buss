@@ -89,7 +89,7 @@ export const AccountRow = ({
         </div>
 
         {/* Actions */}
-        <div className='col-span-2 flex justify-end'>
+        <div className='col-span-2 flex items-center justify-end gap-1'>
           {isDeleting ? (
             <span className='inline-flex items-center gap-2 text-xs text-red-600 bg-red-50 px-3 py-1.5 rounded-md'>
               <Icons.Spinner className='h-3 w-3 text-red-600' />
