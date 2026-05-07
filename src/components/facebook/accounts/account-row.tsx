@@ -5,18 +5,22 @@ import { Icons } from './icons';
 import { StatusBadge, VerificationBadge } from './badges';
 import { CopyButton } from './copy-button';
 import { DeleteConfirmation } from './delete-confirmation';
+import { AddPhoneNumberModal } from './add-phone-number-modal';
 import type { AccountWithVerification } from './types';
 
 export const AccountRow = ({
   account,
   onDelete,
   onToggleExpand,
+  onRefreshNumbers,
 }: {
   account: AccountWithVerification;
   onDelete: (id: string) => Promise<void>;
   onToggleExpand: (id: string) => void;
+  onRefreshNumbers: (id: string) => Promise<void>;
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showAddModal, setShowAddModal] = useState(false);
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -103,7 +107,17 @@ export const AccountRow = ({
             </div>
           ) : account.phoneNumbers && account.phoneNumbers.length > 0 ? (
             <div className='space-y-3'>
-              <h4 className='text-xs font-semibold uppercase tracking-wider text-gray-500'>Números do WhatsApp ({account.phoneNumbers.length})</h4>
+              <div className='flex items-center justify-between'>
+                <h4 className='text-xs font-semibold uppercase tracking-wider text-gray-500'>Números do WhatsApp ({account.phoneNumbers.length})</h4>
+                <button
+                  type='button'
+                  onClick={() => setShowAddModal(true)}
+                  className='inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50'
+                >
+                  <Icons.Plus className='h-3.5 w-3.5' />
+                  Adicionar número
+                </button>
+              </div>
               <div className='grid gap-3 sm:grid-cols-2'>
                 {account.phoneNumbers.map((number) => (
                   <div key={number.id} className='flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm transition-shadow hover:shadow-md'>
@@ -143,11 +157,32 @@ export const AccountRow = ({
               </div>
             </div>
           ) : (
-            <div className='py-4 text-center text-sm text-gray-500'>
-              Nenhum número de WhatsApp encontrado nesta conta.
+            <div className='space-y-3'>
+              <div className='flex items-center justify-between'>
+                <p className='py-4 text-sm text-gray-500'>Nenhum número de WhatsApp encontrado nesta conta.</p>
+                <button
+                  type='button'
+                  onClick={() => setShowAddModal(true)}
+                  className='inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 shadow-sm hover:bg-gray-50'
+                >
+                  <Icons.Plus className='h-3.5 w-3.5' />
+                  Adicionar número
+                </button>
+              </div>
             </div>
           )}
         </div>
+      )}
+
+      {showAddModal && account.waba_id && (
+        <AddPhoneNumberModal
+          wabaId={account.waba_id}
+          onClose={() => setShowAddModal(false)}
+          onSuccess={() => {
+            setShowAddModal(false);
+            onRefreshNumbers(account.id);
+          }}
+        />
       )}
     </div>
   );

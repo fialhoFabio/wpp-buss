@@ -9,7 +9,7 @@ import { useWhatsappAccounts } from './use-whatsapp-accounts';
 
 export const WhatsappAccountsTable = () => {
   const { user } = useAuth();
-  const { accounts, loading, isRefreshing, refresh, deleteAccount, toggleExpand } = useWhatsappAccounts();
+  const { accounts, loading, isRefreshing, refresh, deleteAccount, toggleExpand, refreshNumbers } = useWhatsappAccounts();
 
   return (
     <div className='space-y-6'>
@@ -81,6 +81,7 @@ export const WhatsappAccountsTable = () => {
                 account={account}
                 onDelete={deleteAccount}
                 onToggleExpand={toggleExpand}
+                onRefreshNumbers={refreshNumbers}
               />
             ))}
           </div>

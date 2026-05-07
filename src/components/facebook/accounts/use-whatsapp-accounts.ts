@@ -67,6 +67,29 @@ export const useWhatsappAccounts = () => {
     }
   };
 
+  const refreshNumbers = async (id: string) => {
+    const account = accounts.find(acc => acc.id === id);
+    if (!account?.waba_id) return;
+
+    setAccounts(prev => prev.map(acc => acc.id === id ? { ...acc, loadingNumbers: true } : acc));
+    try {
+      const response = await getWabaNumbers(account.waba_id);
+      const phoneNumbers = response.data.map(num => ({
+        id: num.id,
+        display_phone_number: num.display_phone_number,
+        verified_name: num.verified_name,
+        quality_rating: num.quality_rating,
+        code_verification_status: num.code_verification_status,
+      }));
+      setAccounts(prev => prev.map(acc =>
+        acc.id === id ? { ...acc, loadingNumbers: false, phoneNumbers } : acc
+      ));
+    } catch (error) {
+      console.error(error);
+      setAccounts(prev => prev.map(acc => acc.id === id ? { ...acc, loadingNumbers: false } : acc));
+    }
+  };
+
   const toggleExpand = async (id: string) => {
     const account = accounts.find(acc => acc.id === id);
     if (!account) return;
@@ -113,5 +136,5 @@ export const useWhatsappAccounts = () => {
     }
   };
 
-  return { accounts, loading, isRefreshing, refresh, deleteAccount, toggleExpand };
+  return { accounts, loading, isRefreshing, refresh, deleteAccount, toggleExpand, refreshNumbers };
 };
