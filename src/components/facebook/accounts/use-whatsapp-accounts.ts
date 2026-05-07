@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { dbGetWhatsappAccounts, dbDeleteWhatsappAccount, dbUpdateWhatsappAccountName, dbSaveWhatsappNumber } from 'lib/supabase';
+import { dbGetWhatsappAccounts, dbDeleteWhatsappAccount, dbUpdateWhatsappAccountName, dbSaveWhatsappNumber, dbRemoveStalePhoneNumbers } from 'lib/supabase';
 import { verifyWabaId, getWabaNumbers } from 'lib/facebook';
 import type { AccountWithVerification } from './types';
 
@@ -84,6 +84,11 @@ export const useWhatsappAccounts = () => {
       setAccounts(prev => prev.map(acc =>
         acc.id === id ? { ...acc, loadingNumbers: false, phoneNumbers } : acc
       ));
+      // Remove stale numbers from DB
+      const activeIds = response.data.map(n => n.id);
+      if (activeIds.length > 0) {
+        await dbRemoveStalePhoneNumbers(account.id, activeIds);
+      }
     } catch (error) {
       console.error(error);
       setAccounts(prev => prev.map(acc => acc.id === id ? { ...acc, loadingNumbers: false } : acc));
@@ -115,7 +120,11 @@ export const useWhatsappAccounts = () => {
             ? { ...acc, loadingNumbers: false, phoneNumbers }
             : acc
         ));
-        // Sync to DB in background
+        // Sync to DB: upsert existing, remove stale
+        const activeIds = response.data.map(n => n.id);
+        if (activeIds.length > 0) {
+          await dbRemoveStalePhoneNumbers(account.id, activeIds);
+        }
         response.data.forEach(num => {
           dbSaveWhatsappNumber({
             whatsapp_account_id: account.id,

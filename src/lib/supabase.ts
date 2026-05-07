@@ -56,6 +56,15 @@ export const dbSaveWhatsappNumber = async ({
   return { insertData, error };
 };
 
+export const dbRemoveStalePhoneNumbers = async (whatsapp_account_id: string, activePhoneNumberIds: string[]) => {
+  const { error } = await supabase
+    .from('whatsapp_phone_numbers')
+    .delete()
+    .eq('whatsapp_account_id', whatsapp_account_id)
+    .not('phone_number_id', 'in', `(${activePhoneNumberIds.join(',')})`);
+  return { error };
+};
+
 export const dbGetWhatsappAccounts = async () => {
   const { data, error } = await supabase
     .from('whatsapp_accounts')
