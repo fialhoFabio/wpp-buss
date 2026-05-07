@@ -7,6 +7,7 @@ import { CopyButton } from './copy-button';
 import { DeleteConfirmation } from './delete-confirmation';
 import { AddPhoneNumberModal } from './add-phone-number-modal';
 import { VerifyPhoneNumberModal } from './verify-phone-number-modal';
+import { RegisterPhoneNumberModal } from './register-phone-number-modal';
 import type { AccountWithVerification, PhoneNumber } from './types';
 
 export const AccountRow = ({
@@ -23,6 +24,7 @@ export const AccountRow = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [verifyingNumber, setVerifyingNumber] = useState<PhoneNumber | undefined>();
+  const [registeringNumber, setRegisteringNumber] = useState<PhoneNumber | undefined>();
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -136,7 +138,7 @@ export const AccountRow = ({
                         </span>
                       </div>
                       <p className='text-xs text-gray-500 truncate' title={number.verified_name}>{number.verified_name}</p>
-                      <div className='mt-1.5 flex items-center gap-2'>
+                      <div className='mt-1.5 flex flex-wrap items-center gap-2'>
                         {number.code_verification_status === 'VERIFIED' ? (
                           <span className='inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700 ring-1 ring-inset ring-green-600/20'>
                             <Icons.CheckCircle className='h-3 w-3' />
@@ -158,6 +160,14 @@ export const AccountRow = ({
                             </button>
                           </>
                         )}
+                        <button
+                          type='button'
+                          onClick={() => setRegisteringNumber(number)}
+                          className='inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700 ring-1 ring-inset ring-green-600/20 hover:bg-green-100'
+                        >
+                          <Icons.Check className='h-3 w-3' />
+                          Registrar
+                        </button>
                       </div>
                       <div className='mt-1 flex items-center gap-1'>
                         <span className='text-[10px] text-gray-400'>ID:</span>
@@ -204,6 +214,18 @@ export const AccountRow = ({
           onClose={() => setVerifyingNumber(undefined)}
           onSuccess={() => {
             setVerifyingNumber(undefined);
+            onRefreshNumbers(account.id);
+          }}
+        />
+      )}
+
+      {registeringNumber !== undefined && (
+        <RegisterPhoneNumberModal
+          phoneNumberId={registeringNumber.id}
+          displayPhoneNumber={registeringNumber.display_phone_number}
+          onClose={() => setRegisteringNumber(undefined)}
+          onSuccess={() => {
+            setRegisteringNumber(undefined);
             onRefreshNumbers(account.id);
           }}
         />
