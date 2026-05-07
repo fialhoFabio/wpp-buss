@@ -1,6 +1,6 @@
 'use client';
 
-import { dbGetWhatsappAccounts, dbDeleteWhatsappAccount, dbUpdateWhatsappAccountName } from 'lib/supabase';
+import { dbGetWhatsappAccounts, dbDeleteWhatsappAccount, dbUpdateWhatsappAccountName, dbSaveWhatsappNumber } from 'lib/supabase';
 import { verifyWabaId, getWabaNumbers } from 'lib/facebook';
 import { FacebookEmbbedSignupButton } from './embbed-signup-button';
 import { useAuth } from 'lib/useAuth';
@@ -16,6 +16,7 @@ type PhoneNumber = {
   display_phone_number: string;
   verified_name: string;
   quality_rating: string;
+  code_verification_status: string;
 };
 
 type AccountWithVerification = WhatsappAccount & { 
@@ -305,6 +306,19 @@ const AccountRow = ({
                         </span>
                       </div>
                       <p className='text-xs text-gray-500 truncate' title={number.verified_name}>{number.verified_name}</p>
+                      <div className='mt-1.5 flex items-center gap-2'>
+                        {number.code_verification_status === 'VERIFIED' ? (
+                          <span className='inline-flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-medium text-green-700 ring-1 ring-inset ring-green-600/20'>
+                            <Icons.CheckCircle className='h-3 w-3' />
+                            Verificado
+                          </span>
+                        ) : (
+                          <span className='inline-flex items-center gap-1 rounded-full bg-yellow-50 px-2 py-0.5 text-[10px] font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20'>
+                            <Icons.XCircle className='h-3 w-3' />
+                            Não verificado
+                          </span>
+                        )}
+                      </div>
                       <div className='mt-1 flex items-center gap-1'>
                          <span className='text-[10px] text-gray-400'>ID:</span>
                          <code className='text-[10px] bg-gray-100 rounded px-1 py-0.5 text-gray-600'>{number.id}</code>
@@ -402,20 +416,29 @@ const useWhatsappAccounts = () => {
          setAccounts(prev => prev.map(acc => acc.id === id ? { ...acc, isExpanded: true, loadingNumbers: true } : acc));
          try {
            const response = await getWabaNumbers(account.waba_id);
+           const phoneNumbers = response.data.map(num => ({
+             id: num.id,
+             display_phone_number: num.display_phone_number,
+             verified_name: num.verified_name,
+             quality_rating: num.quality_rating,
+             code_verification_status: num.code_verification_status,
+           }));
            setAccounts(prev => prev.map(acc => 
              acc.id === id 
-               ? { 
-                   ...acc, 
-                   loadingNumbers: false,
-                   phoneNumbers: response.data.map(num => ({
-                     id: num.id,
-                     display_phone_number: num.display_phone_number,
-                     verified_name: num.verified_name,
-                     quality_rating: num.quality_rating,
-                   }))
-                 } 
+               ? { ...acc, loadingNumbers: false, phoneNumbers } 
                : acc
            ));
+           // Sync to DB in background
+           response.data.forEach(num => {
+             dbSaveWhatsappNumber({
+               whatsapp_account_id: account.id,
+               phone_number_id: num.id,
+               display_phone_number: num.display_phone_number,
+               verified_name: num.verified_name,
+               quality_rating: num.quality_rating,
+               platform_type: num.platform_type,
+             });
+           });
          } catch (error) {
             console.error(error);
             setAccounts(prev => prev.map(acc => acc.id === id ? { ...acc, isExpanded: false, loadingNumbers: false } : acc));

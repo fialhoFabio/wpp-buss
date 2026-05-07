@@ -3,7 +3,7 @@
 import { getEnv } from 'waku/server';
 
 const FACEBOOK_GRAPH_API_URL = 'https://graph.facebook.com/';
-const FACEBOOK_GRAPH_API_VERSION = 'v24.0';
+const FACEBOOK_GRAPH_API_VERSION = 'v25.0';
 
 const fbFetch = async (endpoint: string, options: RequestInit = {}) => {
   const url = `${FACEBOOK_GRAPH_API_URL}${FACEBOOK_GRAPH_API_VERSION}/${endpoint}`;
