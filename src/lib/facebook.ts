@@ -2,52 +2,101 @@
 
 import { getEnv } from 'waku/server';
 
-const FACEBOOK_GRAPH_API_URL = 'https://graph.facebook.com/';
-const FACEBOOK_GRAPH_API_VERSION = 'v25.0';
+// ---------------------------------------------------------------------------
+// Internal HTTP client
+// ---------------------------------------------------------------------------
 
-const fbFetch = async (endpoint: string, options: RequestInit = {}) => {
-  const url = `${FACEBOOK_GRAPH_API_URL}${FACEBOOK_GRAPH_API_VERSION}/${endpoint}`;
-  const res = await fetch(url, {
+const GRAPH_API_BASE = 'https://graph.facebook.com/v25.0';
+
+const fbFetch = async (endpoint: string, options: RequestInit = {}): Promise<unknown> => {
+  const res = await fetch(`${GRAPH_API_BASE}/${endpoint}`, {
     ...options,
     headers: {
-      'Authorization': `Bearer ${getEnv('FACEBOOK_SYSTEM_USER_SECRET_TOKEN')}`,
+      Authorization: `Bearer ${getEnv('FACEBOOK_SYSTEM_USER_SECRET_TOKEN')}`,
       ...options.headers,
     },
   });
+
   if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(`Facebook API error: ${errorData.error.message}`);
+    const body = await res.json() as { error: { message: string } };
+    throw new Error(`Facebook API error: ${body.error.message}`);
   }
+
   return res.json();
 };
 
-type getWabaNumbersResponse = {
-  data: Array<{
-    code_verification_status: string;
-    display_phone_number: string;
-    id: string;
-    last_onboarded_time: string;
-    platform_type: string;
-    quality_rating: string;
-    throughput: {
-      level: string;
-    };
-    verified_name: string;
-    webhook_configuration?: {
-      application: string;
-    };
-  }>;  
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+type PhoneNumber = {
+  id: string;
+  display_phone_number: string;
+  verified_name: string;
+  code_verification_status: string;
+  last_onboarded_time: string;
+  platform_type: string;
+  quality_rating: string;
+  throughput: { level: string };
+  webhook_configuration?: { application: string };
 };
 
-export const getWabaNumbers = async (waba_id: string): Promise<getWabaNumbersResponse> => {
-  return await fbFetch(`${waba_id}/phone_numbers`);
-};
+// ---------------------------------------------------------------------------
+// WhatsApp Business Account (WABA)
+// ---------------------------------------------------------------------------
 
-export const verifyWabaId = async (waba_id: string): Promise<{ valid: boolean; name?: string; error?: string }> => {
+export const verifyWabaId = async (
+  waba_id: string,
+): Promise<{ valid: boolean; name?: string; error?: string }> => {
   try {
-    const data = await fbFetch(`${waba_id}?fields=id,name`);
+    const data = await fbFetch(`${waba_id}?fields=id,name`) as { name: string };
     return { valid: true, name: data.name };
   } catch (error) {
     return { valid: false, error: error instanceof Error ? error.message : 'Unknown error' };
   }
+};
+
+// ---------------------------------------------------------------------------
+// Phone Numbers
+// ---------------------------------------------------------------------------
+
+export const getWabaNumbers = async (waba_id: string): Promise<{ data: PhoneNumber[] }> => {
+  return fbFetch(`${waba_id}/phone_numbers`) as Promise<{ data: PhoneNumber[] }>;
+};
+
+export const addWabaPhoneNumber = async (
+  waba_id: string,
+  params: { cc: string; phone_number: string; verified_name: string },
+): Promise<{ id: string }> => {
+  return fbFetch(`${waba_id}/phone_numbers`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  }) as Promise<{ id: string }>;
+};
+
+export const requestWabaPhoneNumberCode = async (
+  phone_number_id: string,
+  params: { code_method: string; language: string },
+): Promise<void> => {
+  const query = new URLSearchParams(params).toString();
+  await fbFetch(`${phone_number_id}/request_code?${query}`, { method: 'POST' });
+};
+
+export const verifyWabaPhoneNumberCode = async (
+  phone_number_id: string,
+  code: string,
+): Promise<void> => {
+  await fbFetch(`${phone_number_id}/verify_code?code=${encodeURIComponent(code)}`, { method: 'POST' });
+};
+
+export const registerWabaPhoneNumber = async (
+  phone_number_id: string,
+  params: { pin: string },
+): Promise<void> => {
+  await fbFetch(`${phone_number_id}/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ messaging_product: 'whatsapp', ...params }),
+  });
 };
