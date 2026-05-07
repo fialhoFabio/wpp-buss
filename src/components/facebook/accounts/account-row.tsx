@@ -6,7 +6,8 @@ import { StatusBadge, VerificationBadge } from './badges';
 import { CopyButton } from './copy-button';
 import { DeleteConfirmation } from './delete-confirmation';
 import { AddPhoneNumberModal } from './add-phone-number-modal';
-import type { AccountWithVerification } from './types';
+import { VerifyPhoneNumberModal } from './verify-phone-number-modal';
+import type { AccountWithVerification, PhoneNumber } from './types';
 
 export const AccountRow = ({
   account,
@@ -21,6 +22,7 @@ export const AccountRow = ({
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [verifyingNumber, setVerifyingNumber] = useState<PhoneNumber | undefined>();
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -141,10 +143,20 @@ export const AccountRow = ({
                             Verificado
                           </span>
                         ) : (
-                          <span className='inline-flex items-center gap-1 rounded-full bg-yellow-50 px-2 py-0.5 text-[10px] font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20'>
-                            <Icons.XCircle className='h-3 w-3' />
-                            Não verificado
-                          </span>
+                          <>
+                            <span className='inline-flex items-center gap-1 rounded-full bg-yellow-50 px-2 py-0.5 text-[10px] font-medium text-yellow-700 ring-1 ring-inset ring-yellow-600/20'>
+                              <Icons.XCircle className='h-3 w-3' />
+                              Não verificado
+                            </span>
+                            <button
+                              type='button'
+                              onClick={() => setVerifyingNumber(number)}
+                              className='inline-flex items-center gap-1 rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20 hover:bg-blue-100'
+                            >
+                              <Icons.Check className='h-3 w-3' />
+                              Verificar
+                            </button>
+                          </>
                         )}
                       </div>
                       <div className='mt-1 flex items-center gap-1'>
@@ -180,6 +192,18 @@ export const AccountRow = ({
           onClose={() => setShowAddModal(false)}
           onSuccess={() => {
             setShowAddModal(false);
+            onRefreshNumbers(account.id);
+          }}
+        />
+      )}
+
+      {verifyingNumber !== undefined && (
+        <VerifyPhoneNumberModal
+          phoneNumberId={verifyingNumber.id}
+          displayPhoneNumber={verifyingNumber.display_phone_number}
+          onClose={() => setVerifyingNumber(undefined)}
+          onSuccess={() => {
+            setVerifyingNumber(undefined);
             onRefreshNumbers(account.id);
           }}
         />
