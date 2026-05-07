@@ -22,7 +22,9 @@ export const AddPhoneNumberModal = ({ wabaId, onSuccess, onClose }: Props) => {
     setLoading(true);
     setError(undefined);
     try {
-      await addWabaPhoneNumber(wabaId, { cc, phone_number: phoneNumber, verified_name: verifiedName });
+      const numericCc = cc.replace(/\D/g, '');
+      const numericPhone = phoneNumber.replace(/\D/g, '');
+      await addWabaPhoneNumber(wabaId, { cc: numericCc, phone_number: numericPhone, verified_name: verifiedName });
       onSuccess();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao adicionar número');
@@ -72,7 +74,7 @@ export const AddPhoneNumberModal = ({ wabaId, onSuccess, onClose }: Props) => {
           </div>
 
           <div>
-            <label className='mb-1 block text-xs font-medium text-gray-700'>Nome verificado</label>
+            <label className='mb-1 block text-xs font-medium text-gray-700'>Nome de exibição</label>
             <input
               type='text'
               value={verifiedName}
