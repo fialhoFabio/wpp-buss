@@ -18,8 +18,20 @@ const fbFetch = async (endpoint: string, options: RequestInit = {}): Promise<unk
   });
 
   if (!res.ok) {
-    const body = await res.json() as { error: { message: string } };
-    throw new Error(`Facebook API error: ${body.error.message}`);
+    let message = `HTTP ${res.status}`;
+    let traceId: string | undefined;
+    try {
+      const body = await res.json() as { error?: { message?: string; code?: number; error_subcode?: number; fbtrace_id?: string } };
+      const err = body.error;
+      if (err) {
+        const parts: string[] = [];
+        if (err.code !== undefined) parts.push(`(#${err.code}${err.error_subcode !== undefined ? `.${err.error_subcode}` : ''})`);
+        if (err.message) parts.push(err.message);
+        message = parts.join(' ');
+        traceId = err.fbtrace_id;
+      }
+    } catch { /* non-JSON body — keep generic message */ }
+    throw new Error(traceId ? `${message} [trace: ${traceId}]` : message);
   }
 
   return res.json();

@@ -63,7 +63,10 @@ export const RegisterPhoneNumberModal = ({ phoneNumberId, displayPhoneNumber, on
           </div>
 
           {error !== undefined && (
-            <p className='rounded-md bg-red-50 px-3 py-2 text-xs text-red-700'>{error}</p>
+            <div className='flex items-start gap-2 rounded-md border border-red-200 bg-red-50 px-3 py-2.5'>
+              <Icons.XCircle className='mt-0.5 h-4 w-4 shrink-0 text-red-500' />
+              <p className='text-xs text-red-700 break-words'>{error}</p>
+            </div>
           )}
 
           <div className='flex justify-end gap-3 pt-2'>
