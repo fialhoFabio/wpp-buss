@@ -100,23 +100,63 @@ export const ApiLogsTable = () => {
   const [logs, setLogs] = useState<ApiLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | 'success' | 'error'>('all');
-  const [search, setSearch] = useState('');
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  // Pending filter state (what the user is typing/selecting)
+  const [pendingStatus, setPendingStatus] = useState<'all' | 'success' | 'error'>('all');
+  const [pendingSearch, setPendingSearch] = useState('');
+  const [pendingDateFrom, setPendingDateFrom] = useState(today);
+  const [pendingDateTo, setPendingDateTo] = useState(today);
+
+  // Applied filter state (what was last sent to SQL)
+  const [appliedStatus, setAppliedStatus] = useState<'all' | 'success' | 'error'>('all');
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const [appliedDateFrom, setAppliedDateFrom] = useState(today);
+  const [appliedDateTo, setAppliedDateTo] = useState(today);
 
   const isDebugUser = !authLoading && checkDebugUser(user?.id);
 
-  const fetchLogs = useCallback(async () => {
+  const fetchLogs = useCallback(async (
+    status: 'all' | 'success' | 'error',
+    endpoint: string,
+    dateFrom: string,
+    dateTo: string,
+  ) => {
     setLoading(true);
     setError(null);
-    const { data, error: err } = await dbGetApiLogs();
+    const params: Parameters<typeof dbGetApiLogs>[0] = {};
+    if (status !== 'all') params.status = status;
+    const trimmed = endpoint.trim();
+    if (trimmed) params.endpoint = trimmed;
+    if (dateFrom) params.dateFrom = dateFrom;
+    if (dateTo) params.dateTo = dateTo;
+    const { data, error: err } = await dbGetApiLogs(params);
     if (err) setError(err.message);
     setLogs(data);
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    if (isDebugUser) fetchLogs();
-  }, [isDebugUser, fetchLogs]);
+    if (isDebugUser) fetchLogs(appliedStatus, appliedSearch, appliedDateFrom, appliedDateTo);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDebugUser]);
+
+  const handleApply = () => {
+    setAppliedStatus(pendingStatus);
+    setAppliedSearch(pendingSearch);
+    setAppliedDateFrom(pendingDateFrom);
+    setAppliedDateTo(pendingDateTo);
+    fetchLogs(pendingStatus, pendingSearch, pendingDateFrom, pendingDateTo);
+  };
+
+  const handleRefresh = () => fetchLogs(appliedStatus, appliedSearch, appliedDateFrom, appliedDateTo);
+
+  const isDirty =
+    pendingStatus !== appliedStatus ||
+    pendingSearch !== appliedSearch ||
+    pendingDateFrom !== appliedDateFrom ||
+    pendingDateTo !== appliedDateTo;
 
   if (authLoading) {
     return <div className='py-12 text-center text-sm text-gray-400'>A verificar autenticação...</div>;
@@ -130,13 +170,6 @@ export const ApiLogsTable = () => {
       </div>
     );
   }
-
-  const filtered = logs.filter(log => {
-    if (filter === 'success' && log.success === false) return false;
-    if (filter === 'error' && log.success !== false) return false;
-    if (search && !log.endpoint.toLowerCase().includes(search.toLowerCase())) return false;
-    return true;
-  });
 
   const successCount = logs.filter(l => l.success !== false).length;
   const errorCount = logs.filter(l => l.success === false).length;
@@ -152,7 +185,7 @@ export const ApiLogsTable = () => {
           <p className='text-xs text-orange-400'>{logs.length} entradas · {successCount} ok · {errorCount} erros</p>
         </div>
         <button
-          onClick={fetchLogs}
+          onClick={handleRefresh}
           disabled={loading}
           className='inline-flex items-center gap-1.5 rounded-md bg-orange-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-orange-600 disabled:opacity-50'
         >
@@ -166,8 +199,8 @@ export const ApiLogsTable = () => {
           {(['all', 'success', 'error'] as const).map(f => (
             <button
               key={f}
-              onClick={() => setFilter(f)}
-              className={`px-3 py-1.5 transition-colors ${filter === f ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
+              onClick={() => setPendingStatus(f)}
+              className={`px-3 py-1.5 transition-colors ${pendingStatus === f ? 'bg-gray-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'}`}
             >
               {f === 'all' ? 'Todos' : f === 'success' ? 'Sucesso' : 'Erro'}
             </button>
@@ -175,11 +208,38 @@ export const ApiLogsTable = () => {
         </div>
         <input
           type='text'
-          value={search}
-          onChange={e => setSearch(e.target.value)}
+          value={pendingSearch}
+          onChange={e => setPendingSearch(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleApply()}
           placeholder='Filtrar por endpoint...'
           className='rounded-md border border-gray-200 px-3 py-1.5 text-sm text-gray-700 placeholder-gray-400 focus:border-orange-400 focus:outline-none focus:ring-1 focus:ring-orange-400'
         />
+        <div className='flex items-center gap-1.5'>
+          <input
+            type='date'
+            value={pendingDateFrom}
+            onChange={e => setPendingDateFrom(e.target.value)}
+            className='rounded-md border border-gray-200 px-3 py-1.5 text-sm text-gray-700 focus:border-orange-400 focus:outline-none focus:ring-1 focus:ring-orange-400'
+          />
+          <span className='text-xs text-gray-400'>até</span>
+          <input
+            type='date'
+            value={pendingDateTo}
+            onChange={e => setPendingDateTo(e.target.value)}
+            className='rounded-md border border-gray-200 px-3 py-1.5 text-sm text-gray-700 focus:border-orange-400 focus:outline-none focus:ring-1 focus:ring-orange-400'
+          />
+        </div>
+        <button
+          onClick={handleApply}
+          disabled={loading}
+          className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors disabled:opacity-50 ${
+            isDirty
+              ? 'bg-gray-900 text-white hover:bg-gray-700'
+              : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+          }`}
+        >
+          Aplicar
+        </button>
       </div>
 
       {/* Error */}
@@ -197,7 +257,7 @@ export const ApiLogsTable = () => {
               <th className='px-3 py-2'>Endpoint</th>
               <th className='px-3 py-2'>Status</th>
               <th className='px-3 py-2'>Duração</th>
-              <th className='px-3 py-2'>Erro</th>
+              <th className='px-3 py-2'>Payload</th>
               <th className='px-3 py-2' />
             </tr>
           </thead>
@@ -207,12 +267,12 @@ export const ApiLogsTable = () => {
                 <td colSpan={7} className='py-12 text-center text-sm text-gray-400'>Carregando...</td>
               </tr>
             )}
-            {!loading && filtered.length === 0 && (
+            {!loading && logs.length === 0 && (
               <tr>
                 <td colSpan={7} className='py-12 text-center text-sm text-gray-400'>Nenhum log encontrado.</td>
               </tr>
             )}
-            {!loading && filtered.map(log => <LogRow key={log.id} log={log} />)}
+            {!loading && logs.map(log => <LogRow key={log.id} log={log} />)}
           </tbody>
         </table>
       </div>

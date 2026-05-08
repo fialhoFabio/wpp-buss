@@ -118,12 +118,33 @@ export const dbUpdateWhatsappAccountName = async (id: string, display_name: stri
   return { error };
 };
 
-export const dbGetApiLogs = async (limit = 200) => {
-  const { data, error } = await supabase
+export const dbGetApiLogs = async ({
+  limit = 200,
+  status,
+  endpoint,
+  dateFrom,
+  dateTo,
+}: {
+  limit?: number;
+  status?: 'success' | 'error';
+  endpoint?: string;
+  dateFrom?: string;
+  dateTo?: string;
+} = {}) => {
+  let query = supabase
     .from('api_logs')
     .select('*')
     .order('created_at', { ascending: false })
     .limit(limit);
+
+  if (status === 'success') query = query.eq('success', true);
+  if (status === 'error') query = query.eq('success', false);
+  if (endpoint) query = query.ilike('endpoint', `%${endpoint}%`);
+  if (dateFrom) query = query.gte('created_at', dateFrom);
+  // dateTo: include the full day by going to end of day
+  if (dateTo) query = query.lte('created_at', `${dateTo}T23:59:59.999Z`);
+
+  const { data, error } = await query;
   if (error) console.error('Error fetching api_logs:', error);
   return { data: data ?? [], error };
 };
