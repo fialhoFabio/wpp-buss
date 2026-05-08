@@ -117,3 +117,13 @@ export const dbUpdateWhatsappAccountName = async (id: string, display_name: stri
     .eq('id', id);
   return { error };
 };
+
+export const dbGetApiLogs = async (limit = 200) => {
+  const { data, error } = await supabase
+    .from('api_logs')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) console.error('Error fetching api_logs:', error);
+  return { data: data ?? [], error };
+};

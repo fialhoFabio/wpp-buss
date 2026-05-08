@@ -9,16 +9,15 @@ import { AccountRow } from './account-row';
 import { DebugWabaPanel } from './debug-waba-panel';
 import { useWhatsappAccounts } from './use-whatsapp-accounts';
 import { verifyWabaId } from 'lib/facebook';
+import { isDebugUser as checkDebugUser } from 'lib/debug';
 import type { AccountWithVerification } from './types';
-
-const DEBUG_USER_ID = '417202c2-5144-4e36-8c72-d8a48324e781';
 
 const makeDebugAccount = (wabaId: string): AccountWithVerification => ({
   id: `debug-${wabaId}`,
   waba_id: wabaId,
   business_id: 'debug',
   display_name: `[DEBUG] ${wabaId}`,
-  owner_id: DEBUG_USER_ID,
+  owner_id: 'debug',
   status: 'active',
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
@@ -30,7 +29,7 @@ export const WhatsappAccountsTable = () => {
   const { accounts, loading, isRefreshing, refresh, deleteAccount, toggleExpand, refreshNumbers } = useWhatsappAccounts();
   const [debugAccounts, setDebugAccounts] = useState<AccountWithVerification[]>([]);
 
-  const isDebugUser = !authLoading && user?.id === DEBUG_USER_ID;
+  const isDebugUser = !authLoading && checkDebugUser(user?.id);
 
   const addDebugWaba = async (wabaId: string) => {
     if (debugAccounts.some(a => a.waba_id === wabaId)) return;
