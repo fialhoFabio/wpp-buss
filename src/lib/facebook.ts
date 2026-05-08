@@ -136,3 +136,44 @@ export const registerWabaPhoneNumber = async (
     body: JSON.stringify({ messaging_product: 'whatsapp', ...params }),
   });
 };
+
+// ---------------------------------------------------------------------------
+// Debug
+// ---------------------------------------------------------------------------
+
+export const fbDebugRequest = async (
+  endpoint: string,
+  method: string,
+  body?: string,
+  tokenType: 'system_user' | 'app' = 'system_user',
+): Promise<{ data: unknown; error?: string }> => {
+  try {
+    const token =
+      tokenType === 'app'
+        ? `${getEnv('WAKU_PUBLIC_FB_APP_ID')}|${getEnv('WAKU_PUBLIC_FB_APP_SECRET')}`
+        : getEnv('FACEBOOK_SYSTEM_USER_SECRET_TOKEN');
+
+    const options: RequestInit = {
+      method,
+      headers: { Authorization: `Bearer ${token}` },
+    };
+    if (body && method !== 'GET' && method !== 'DELETE') {
+      (options.headers as Record<string, string>)['Content-Type'] = 'application/json';
+      options.body = body;
+    }
+    const res = await fetch(`${GRAPH_API_BASE}/${endpoint}`, options);
+    const json: unknown = await res.json();
+    if (!res.ok) {
+      const err = (json as { error?: { message?: string; code?: number; error_subcode?: number; fbtrace_id?: string } }).error;
+      const friendly = friendlyMetaError(err?.code, err?.error_subcode, err?.message);
+      const codeTag = err?.code !== undefined
+        ? ` [#${err.code}${err?.error_subcode !== undefined ? `.${err.error_subcode}` : ''}]`
+        : '';
+      const trace = err?.fbtrace_id ? ` (trace: ${err.fbtrace_id})` : '';
+      return { data: json, error: `${friendly}${codeTag}${trace}` };
+    }
+    return { data: json };
+  } catch (err) {
+    return { data: null, error: err instanceof Error ? err.message : String(err) };
+  }
+};

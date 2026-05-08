@@ -7,6 +7,7 @@ import { isDebugUser as checkDebugUser } from 'lib/debug';
 
 const debugLinks = [
   { name: 'API Logs', href: '/api-logs' as const },
+  { name: 'Facebook Debug', href: '/fb-debug' as const },
 ];
 
 export const navigation = [
