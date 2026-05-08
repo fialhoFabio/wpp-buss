@@ -24,14 +24,19 @@ const externalLinks = [
 export const Navigation = () => {
   const { user, isAuthenticated } = useAuth();
   const { path } = useRouter();
+  const [fbOpen, setFbOpen] = useState(false);
   const [debugOpen, setDebugOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const fbDropdownRef = useRef<HTMLDivElement>(null);
+  const debugDropdownRef = useRef<HTMLDivElement>(null);
 
   const isDebugUser = checkDebugUser(user?.id);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (fbDropdownRef.current && !fbDropdownRef.current.contains(e.target as Node)) {
+        setFbOpen(false);
+      }
+      if (debugDropdownRef.current && !debugDropdownRef.current.contains(e.target as Node)) {
         setDebugOpen(false);
       }
     };
@@ -63,26 +68,44 @@ export const Navigation = () => {
         );
       })}
       {visibleExternal.length > 0 && (
-        <div className='mx-1 h-4 w-px bg-gray-200' />
+        <>
+          <div className='mx-1 h-4 w-px bg-gray-200' />
+          <div className='relative' ref={fbDropdownRef}>
+            <button
+              onClick={() => setFbOpen(prev => !prev)}
+              className='inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900'
+            >
+              Facebook
+              <svg className={`h-3.5 w-3.5 transition-transform ${fbOpen ? 'rotate-180' : ''}`} fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
+                <path strokeLinecap='round' strokeLinejoin='round' d='M19 9l-7 7-7-7' />
+              </svg>
+            </button>
+            {fbOpen && (
+              <div className='absolute right-0 z-50 mt-1 w-52 rounded-lg border border-gray-100 bg-white py-1 shadow-lg'>
+                {visibleExternal.map(item => (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    onClick={() => setFbOpen(false)}
+                    className='flex items-center justify-between px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50'
+                  >
+                    {item.name}
+                    <svg className='h-3 w-3 opacity-50' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
+                      <path strokeLinecap='round' strokeLinejoin='round' d='M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25' />
+                    </svg>
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        </>
       )}
-      {visibleExternal.map((item) => (
-        <a
-          key={item.name}
-          href={item.href}
-          target='_blank'
-          rel='noopener noreferrer'
-          className='inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 hover:text-gray-900'
-        >
-          {item.name}
-          <svg className='h-3 w-3 opacity-50' fill='none' viewBox='0 0 24 24' stroke='currentColor' strokeWidth={2}>
-            <path strokeLinecap='round' strokeLinejoin='round' d='M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25' />
-          </svg>
-        </a>
-      ))}
       {isDebugUser && (
         <>
           <div className='mx-1 h-4 w-px bg-gray-200' />
-          <div className='relative' ref={dropdownRef}>
+          <div className='relative' ref={debugDropdownRef}>
             <button
               onClick={() => setDebugOpen(prev => !prev)}
               className='inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-orange-500 transition-colors hover:bg-orange-50'
