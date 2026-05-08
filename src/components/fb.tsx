@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { fbExchangeOAuthCode } from 'lib/facebook';
 
 export const FacebookLoader = () => {
   const FB = typeof window !== 'undefined' ? window.FB : null;
@@ -85,28 +86,10 @@ export const FacebookLoader = () => {
       console.log('Facebook SDK not loaded yet.');
     }
   }
-  function getAccessToken() {
-    console.log({
-          client_id: import.meta.env.WAKU_PUBLIC_FB_APP_ID,
-          client_secret: import.meta.env.WAKU_PUBLIC_FB_APP_SECRET,
-          code: wb_code,
-        })
-    if (FB) {
-      FB.api(
-        '/oauth/access_token',
-        'GET',
-        {
-          client_id: import.meta.env.WAKU_PUBLIC_FB_APP_ID,
-          client_secret: import.meta.env.WAKU_PUBLIC_FB_APP_SECRET,
-          code: wb_code,
-        },
-        function(response: unknown) {
-          console.log('Access Token:', response);
-        }
-      );
-    } else {
-      console.log('Facebook SDK not loaded yet.');
-    }
+  async function getAccessToken() {
+    if (!wb_code) return;
+    const result = await fbExchangeOAuthCode(wb_code);
+    console.log('Access Token:', result);
   }
   function getLoginStatus() {
     if (FB) {

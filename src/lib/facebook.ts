@@ -150,7 +150,7 @@ export const fbDebugRequest = async (
   try {
     const token =
       tokenType === 'app'
-        ? `${getEnv('WAKU_PUBLIC_FB_APP_ID')}|${getEnv('WAKU_PUBLIC_FB_APP_SECRET')}`
+        ? `${getEnv('WAKU_PUBLIC_FB_APP_ID')}|${getEnv('FB_APP_SECRET')}`
         : getEnv('FACEBOOK_SYSTEM_USER_SECRET_TOKEN');
 
     const options: RequestInit = {
@@ -173,6 +173,29 @@ export const fbDebugRequest = async (
       return { data: json, error: `${friendly}${codeTag}${trace}` };
     }
     return { data: json };
+  } catch (err) {
+    return { data: null, error: err instanceof Error ? err.message : String(err) };
+  }
+};
+
+// ---------------------------------------------------------------------------
+// OAuth
+// ---------------------------------------------------------------------------
+
+export const fbExchangeOAuthCode = async (
+  code: string,
+): Promise<{ data: { access_token?: string; token_type?: string } | null; error?: string }> => {
+  const appId = getEnv('WAKU_PUBLIC_FB_APP_ID');
+  const appSecret = getEnv('FB_APP_SECRET');
+  const params = new URLSearchParams({ client_id: appId ?? '', client_secret: appSecret ?? '', code });
+  try {
+    const res = await fetch(`${GRAPH_API_BASE}/oauth/access_token?${params.toString()}`, { method: 'GET' });
+    const json: unknown = await res.json();
+    if (!res.ok) {
+      const err = (json as { error?: { message?: string; code?: number; error_subcode?: number } }).error;
+      return { data: null, error: friendlyMetaError(err?.code, err?.error_subcode, err?.message) };
+    }
+    return { data: json as { access_token?: string; token_type?: string } };
   } catch (err) {
     return { data: null, error: err instanceof Error ? err.message : String(err) };
   }
