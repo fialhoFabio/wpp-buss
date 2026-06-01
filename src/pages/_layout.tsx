@@ -1,4 +1,4 @@
-// import '../styles.css';
+import '../styles.css';
 
 import type { ReactNode } from 'react';
 import { Header } from 'components/header';
