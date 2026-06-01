@@ -100,6 +100,24 @@ export const getWabaNumbers = async (waba_id: string): Promise<{ data: PhoneNumb
   return fbFetch(`${waba_id}/phone_numbers`) as Promise<{ data: PhoneNumber[] }>;
 };
 
+// ---------------------------------------------------------------------------
+// Webhook Subscription
+// ---------------------------------------------------------------------------
+
+export const subscribeWabaToApp = async (waba_id: string): Promise<void> => {
+  await fbFetch(`${waba_id}/subscribed_apps`, { method: 'POST' });
+};
+
+type SubscribedApp = {
+  whatsapp_business_api_data: { id: string; name: string; link: string };
+};
+
+export const getWabaSubscribedApps = async (
+  waba_id: string,
+): Promise<{ data: SubscribedApp[] }> => {
+  return fbFetch(`${waba_id}/subscribed_apps`) as Promise<{ data: SubscribedApp[] }>;
+};
+
 export const addWabaPhoneNumber = async (
   waba_id: string,
   params: { cc: string; phone_number: string; verified_name: string },

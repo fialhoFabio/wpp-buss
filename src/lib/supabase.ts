@@ -118,6 +118,14 @@ export const dbUpdateWhatsappAccountName = async (id: string, display_name: stri
   return { error };
 };
 
+export const dbUpdateWhatsappAccountStatus = async (id: string, status: string) => {
+  const { error } = await supabase
+    .from('whatsapp_accounts')
+    .update({ status })
+    .eq('id', id);
+  return { error };
+};
+
 export const dbGetApiLogs = async ({
   limit = 200,
   status,

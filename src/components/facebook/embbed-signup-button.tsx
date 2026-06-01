@@ -1,6 +1,6 @@
 'use client';
-import { getWabaNumbers } from 'lib/facebook';
-import { dbSaveWhatsappAccount, dbSaveWhatsappNumber } from 'lib/supabase';
+import { getWabaNumbers, subscribeWabaToApp, getWabaSubscribedApps } from 'lib/facebook';
+import { dbSaveWhatsappAccount, dbSaveWhatsappNumber, dbUpdateWhatsappAccountStatus } from 'lib/supabase';
 import { useEffect } from 'react';
 
 export function FacebookEmbbedSignupButton() {
@@ -10,36 +10,53 @@ export function FacebookEmbbedSignupButton() {
       if (!event.origin.endsWith('facebook.com')) return;
       try {
         const response = JSON.parse(event.data);
-        if (response.type === 'WA_EMBEDDED_SIGNUP') {
-          console.log('message event: ', response); // remove after testing
-          const {data} = response;
-          const {insertData, error} = await dbSaveWhatsappAccount({
-            business_id: data.business_id,
-            waba_id: data.waba_id || '',
-            status: 'active',
-          });
-          console.log('DB Save Result: ', insertData, error);
-          if (!insertData) {
-            console.error('Error saving WhatsApp account to DB');
-            return;
-          }
-          const nm = await getWabaNumbers(insertData.waba_id);
-          nm.data.forEach(async (number) => {
-            console.log('WABA Number: ', number.display_phone_number);
-            const {insertData: a, error: err} = await dbSaveWhatsappNumber({
-              whatsapp_account_id: insertData.id,
-              phone_number_id: number.id,
-              display_phone_number: number.display_phone_number,
-              verified_name: number.verified_name,
-              quality_rating: number.quality_rating,
-              platform_type: number.platform_type,
-            });
-            console.log('DB Save Number Result: ', a, err);
-          });
+        if (response.type !== 'WA_EMBEDDED_SIGNUP') return;
+
+        const { data } = response;
+        const wabaId: string = data.waba_id || '';
+
+        // Step 1+2: Save WABA and phone numbers (account starts as pending)
+        const { insertData: account, error: saveErr } = await dbSaveWhatsappAccount({
+          business_id: data.business_id,
+          waba_id: wabaId,
+          status: 'pending',
+        });
+        if (!account || saveErr) {
+          console.error('[Signup] Failed to save account:', saveErr);
+          return;
         }
-      } catch {
-        console.log('message event: ', event.data); // remove after testing
-        // your code goes here
+
+        const nm = await getWabaNumbers(wabaId);
+        await Promise.all(nm.data.map(number =>
+          dbSaveWhatsappNumber({
+            whatsapp_account_id: account.id,
+            phone_number_id: number.id,
+            display_phone_number: number.display_phone_number,
+            verified_name: number.verified_name,
+            quality_rating: number.quality_rating,
+            platform_type: number.platform_type,
+          })
+        ));
+
+        // Step 3: Subscribe WABA webhook to this app
+        await subscribeWabaToApp(wabaId);
+
+        // Step 4: Validate subscription
+        const { data: subscribedApps } = await getWabaSubscribedApps(wabaId);
+        const appId = import.meta.env.WAKU_PUBLIC_FB_APP_ID;
+        const isSubscribed = subscribedApps.some(
+          app => app.whatsapp_business_api_data.id === appId,
+        );
+        if (!isSubscribed) {
+          console.error('[Signup] Webhook subscription not confirmed for WABA:', wabaId);
+          return;
+        }
+
+        // Step 5: Mark account as active
+        await dbUpdateWhatsappAccountStatus(account.id, 'active');
+        console.log('[Signup] Account active and webhook subscribed for WABA:', wabaId);
+      } catch (err) {
+        console.error('[Signup] Error during signup flow:', err);
       }
     };
 
