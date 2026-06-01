@@ -4,8 +4,6 @@ import { dbSaveWhatsappAccount, dbSaveWhatsappNumber } from 'lib/supabase';
 import { useEffect } from 'react';
 
 export function FacebookEmbbedSignupButton() {
-  const FB = typeof window !== 'undefined' ? window.FB : null;
-
   useEffect(() => {
     // Session logging message event listener
     const handleMessage = async (event: MessageEvent) => {
@@ -53,7 +51,15 @@ export function FacebookEmbbedSignupButton() {
   }, []);
 
   function loginOnFacebook() {
-    if (FB) {
+    const FB = window.FB;
+    if (!window.fbSDKReady || !FB) {
+      if (window.fbSDKError) {
+        console.error('[FB SDK] Cannot login, SDK failed to initialize:', window.fbSDKError);
+      } else {
+        console.log('[FB SDK] Not ready yet. fbSDKReady=' + window.fbSDKReady + ' FB=' + typeof FB);
+      }
+      return;
+    }
       FB.login((res) => {
         console.log('FB login: ', res);
       }, {
@@ -82,9 +88,6 @@ export function FacebookEmbbedSignupButton() {
         },
         // scope: 'whatsapp_business_messaging,whatsapp_business_management',
       });
-    } else {
-      console.log('Facebook SDK not loaded yet.');
-    }
   }
   
   return (

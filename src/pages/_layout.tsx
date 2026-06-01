@@ -1,4 +1,4 @@
-import '../styles.css';
+// import '../styles.css';
 
 import type { ReactNode } from 'react';
 import { Header } from 'components/header';
@@ -25,16 +25,25 @@ export default async function RootLayout({ children }: RootLayoutProps) {
       <script
         dangerouslySetInnerHTML={{
           __html: `
+            window.fbSDKReady = false;
+            window.fbSDKError = null;
             window.fbAsyncInit = function() {
-              console.info('Loading Facebook SDK...');
-              console.info('FB_APP_ID:', '${import.meta.env.WAKU_PUBLIC_FB_APP_ID}');
-              console.info('FB_LANG:', '${import.meta.env.WAKU_PUBLIC_FB_LANG}');
-              FB.init({
-                appId            : '${import.meta.env.WAKU_PUBLIC_FB_APP_ID}',
-                autoLogAppEvents: true,
-                xfbml            : false,
-                version          : 'v24.0'
-              });
+              try {
+                var appId = '${import.meta.env.WAKU_PUBLIC_FB_APP_ID}';
+                var version = 'v22.0';
+                console.info('[FB SDK] Initializing... appId=' + appId + ' version=' + version);
+                FB.init({
+                  appId            : appId,
+                  autoLogAppEvents : true,
+                  xfbml            : false,
+                  version          : version
+                });
+                window.fbSDKReady = true;
+                console.info('[FB SDK] Initialized successfully');
+              } catch (e) {
+                window.fbSDKError = e;
+                console.error('[FB SDK] Init failed:', e && e.message ? e.message : e);
+              }
             };
           `,
         }}

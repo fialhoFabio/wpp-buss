@@ -1,6 +1,8 @@
 declare global {
   interface Window {
     fbAsyncInit?: () => void;
+    fbSDKReady?: boolean;
+    fbSDKError?: unknown;
     FB?: {
       __globalCallbacks: Record<string, any>;
       init: (params: {
