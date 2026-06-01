@@ -32,6 +32,18 @@ export const ConversationsChat = () => {
     dbGetActiveConversationIds().then(setActiveIds);
   }, []);
 
+  // Reload conversations when the tab regains focus (catches missed inbound new conversations)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        dbGetConversations().then(({ data }) => setConversations(data));
+        dbGetActiveConversationIds().then(setActiveIds);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
   useEffect(() => {
     if (!selectedId) return;
     setLoadingMessages(true);
@@ -76,6 +88,18 @@ export const ConversationsChat = () => {
     return () => { channels.forEach((ch) => supabase.removeChannel(ch)); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversations.length]);
+
+  // Subscribe to new conversations channel so first-contact inbounds appear without F5
+  useEffect(() => {
+    const channel = supabase
+      .channel('wpp:conversations', { config: { private: true } })
+      .on('broadcast', { event: 'INSERT' }, () => {
+        dbGetConversations().then(({ data }) => setConversations(data));
+        dbGetActiveConversationIds().then(setActiveIds);
+      })
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, []);
 
   return (
     <div className='flex h-[calc(100svh-5rem)] w-full overflow-hidden rounded-lg border border-gray-200 shadow-sm'>
