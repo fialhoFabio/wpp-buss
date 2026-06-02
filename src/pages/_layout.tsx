@@ -34,7 +34,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
                 console.info('[FB SDK] Initializing... appId=' + appId + ' version=' + version);
                 FB.init({
                   appId            : appId,
-                  autoLogAppEvents : true,
+                  autoLogAppEvents : false,
                   xfbml            : false,
                   version          : version
                 });
