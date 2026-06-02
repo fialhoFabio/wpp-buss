@@ -4,6 +4,28 @@ export type LastMessagePreview = Pick<Database['public']['Tables']['wpp_messages
 export type Conversation = Database['public']['Tables']['wpp_conversations']['Row'] & { wpp_messages: LastMessagePreview[] };
 export type Message = Database['public']['Tables']['wpp_messages']['Row'];
 export type PendingMessage = { tempId: string; text: string };
+export type PhoneNumber = Database['public']['Tables']['whatsapp_phone_numbers']['Row'];
+
+const NUMBER_COLORS = [
+  { dot: 'bg-emerald-500', bg: 'bg-emerald-100', text: 'text-emerald-700' },
+  { dot: 'bg-blue-500',    bg: 'bg-blue-100',    text: 'text-blue-700' },
+  { dot: 'bg-purple-500',  bg: 'bg-purple-100',  text: 'text-purple-700' },
+  { dot: 'bg-orange-500',  bg: 'bg-orange-100',  text: 'text-orange-700' },
+  { dot: 'bg-rose-500',    bg: 'bg-rose-100',    text: 'text-rose-700' },
+  { dot: 'bg-teal-500',    bg: 'bg-teal-100',    text: 'text-teal-700' },
+];
+
+export function getPhoneColorMap(phones: PhoneNumber[]): Map<string, { dot: string; bg: string; text: string; label: string }> {
+  const map = new Map<string, { dot: string; bg: string; text: string; label: string }>();
+  phones.forEach((p, i) => {
+    const color = NUMBER_COLORS[i % NUMBER_COLORS.length]!;
+    map.set(p.phone_number_id, {
+      ...color,
+      label: p.verified_name ?? p.display_phone_number ?? p.phone_number_id,
+    });
+  });
+  return map;
+}
 
 function extractText(content: Record<string, unknown>, type: string): string | null {
   if (typeof content['body'] === 'string') return content['body'];

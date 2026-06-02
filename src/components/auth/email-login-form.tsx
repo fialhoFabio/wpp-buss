@@ -50,7 +50,7 @@ export function EmailLoginForm() {
             throw error;
         }
         
-        window.location.href = '/link-whatsapp-account'; 
+        window.location.href = '/conversations'; 
       }
     } catch (err: unknown) {
       setError((err as Error)?.message || 'Ocorreu um erro.');

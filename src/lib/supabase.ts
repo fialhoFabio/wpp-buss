@@ -81,6 +81,15 @@ export const dbGetActiveConversationIds = async (): Promise<Set<string>> => {
   return new Set((data ?? []).map((r) => r.id).filter((id): id is string => id !== null));
 };
 
+export const dbGetPhoneNumbers = async () => {
+  const { data, error } = await supabase
+    .from('whatsapp_phone_numbers')
+    .select('*')
+    .order('created_at', { ascending: true });
+  if (error) console.error('Error fetching phone numbers:', error);
+  return { data: data ?? [], error };
+};
+
 export const dbGetConversations = async () => {
   const { data, error } = await supabase
     .from('wpp_conversations')

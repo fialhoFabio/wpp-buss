@@ -1,6 +1,6 @@
 'use client';
 
-import { type Conversation, type LastMessagePreview, formatConversationDate, getInitials, getPreviewText } from './chat-utils';
+import { type Conversation, type LastMessagePreview, type PhoneNumber, formatConversationDate, getInitials, getPreviewText, getPhoneColorMap } from './chat-utils';
 
 const UnreadDot = () => (
   <span className='absolute right-0 top-0 flex h-3 w-3'>
@@ -28,12 +28,20 @@ const ConversationItem = ({
   isSelected,
   hasUnread,
   isActive,
+  phoneLabel,
+  phoneDot,
+  phoneBg,
+  phoneText,
   onClick,
 }: {
   conversation: Conversation;
   isSelected: boolean;
   hasUnread: boolean;
   isActive: boolean;
+  phoneLabel?: string;
+  phoneDot?: string;
+  phoneBg?: string;
+  phoneText?: string;
   onClick: () => void;
 }) => {
   const lastMsg: LastMessagePreview | null = conversation.wpp_messages[0] ?? null;
@@ -64,8 +72,65 @@ const ConversationItem = ({
         <p className={`truncate text-xs ${hasUnread ? 'font-semibold text-gray-800' : 'text-gray-500'}`}>
           {lastMsg ? getPreviewText(lastMsg) : conversation.display_phone_number || conversation.contact_phone}
         </p>
+        {phoneLabel && (
+          <div className='mt-0.5 flex items-center gap-1'>
+            <span className={`h-1.5 w-1.5 flex-shrink-0 rounded-full ${phoneDot}`} />
+            <span className={`truncate rounded px-1 py-0.5 text-[10px] font-medium ${phoneBg} ${phoneText}`}>
+              {phoneLabel}
+            </span>
+          </div>
+        )}
       </div>
     </button>
+  );
+};
+
+const PhoneNumbersPanel = ({ phones, onOpenAccounts }: { phones: PhoneNumber[]; onOpenAccounts: () => void }) => {
+  const colorMap = getPhoneColorMap(phones);
+  if (phones.length === 0) {
+    return (
+      <div className='border-b border-gray-200 px-4 py-3'>
+        <div className='flex items-center justify-between'>
+          <span className='text-xs font-semibold uppercase tracking-wide text-gray-400'>Números</span>
+          <button onClick={onOpenAccounts} className='flex items-center gap-1 rounded-md bg-emerald-500 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-600'>
+            <svg className='h-3 w-3' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+              <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+            </svg>
+            Vincular conta
+          </button>
+        </div>
+        <p className='mt-2 text-xs text-gray-400'>Nenhum número vinculado.</p>
+      </div>
+    );
+  }
+  return (
+    <div className='border-b border-gray-200 px-4 py-3'>
+      <div className='flex items-center justify-between'>
+        <span className='text-xs font-semibold uppercase tracking-wide text-gray-400'>Números</span>
+        <button onClick={onOpenAccounts} className='flex items-center gap-1 rounded-md bg-emerald-500 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-600'>
+          <svg className='h-3 w-3' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
+            <path strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} d='M12 4v16m8-8H4' />
+          </svg>
+          Vincular conta
+        </button>
+      </div>
+      <ul className='mt-2 space-y-1'>
+        {phones.map((p) => {
+          const color = colorMap.get(p.phone_number_id);
+          return (
+            <li key={p.id} className='flex items-center gap-2'>
+              <span className={`h-2 w-2 flex-shrink-0 rounded-full ${color?.dot ?? 'bg-gray-400'}`} />
+              <span className='truncate text-xs text-gray-700'>
+                {p.verified_name ?? p.display_phone_number ?? p.phone_number_id}
+              </span>
+              {p.display_phone_number && p.verified_name && (
+                <span className='ml-auto flex-shrink-0 text-[10px] text-gray-400'>{p.display_phone_number}</span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+    </div>
   );
 };
 
@@ -78,6 +143,8 @@ export const ConversationSidebar = ({
   search,
   onSearchChange,
   onSelect,
+  phoneNumbers,
+  onOpenAccounts,
 }: {
   conversations: Conversation[];
   loading: boolean;
@@ -87,7 +154,11 @@ export const ConversationSidebar = ({
   search: string;
   onSearchChange: (value: string) => void;
   onSelect: (id: string) => void;
+  phoneNumbers: PhoneNumber[];
+  onOpenAccounts: () => void;
 }) => {
+  const colorMap = getPhoneColorMap(phoneNumbers);
+
   const filtered = search.trim()
     ? conversations.filter(
         (c) =>
@@ -98,6 +169,7 @@ export const ConversationSidebar = ({
 
   return (
     <div className='flex w-80 flex-shrink-0 flex-col border-r border-gray-200 bg-white'>
+      <PhoneNumbersPanel phones={phoneNumbers} onOpenAccounts={onOpenAccounts} />
       <div className='border-b border-gray-200 p-3'>
         <div className='relative'>
           <svg className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
@@ -118,16 +190,23 @@ export const ConversationSidebar = ({
         ) : filtered.length === 0 ? (
           <div className='p-4 text-center text-sm text-gray-500'>Nenhuma conversa encontrada.</div>
         ) : (
-          filtered.map((c) => (
-            <ConversationItem
-              key={c.id}
-              conversation={c}
-              isSelected={selectedId === c.id}
-              hasUnread={unreadIds.has(c.id)}
-              isActive={activeIds.has(c.id)}
-              onClick={() => onSelect(c.id)}
-            />
-          ))
+          filtered.map((c) => {
+            const color = colorMap.get(c.phone_number_id);
+            return (
+              <ConversationItem
+                key={c.id}
+                conversation={c}
+                isSelected={selectedId === c.id}
+                hasUnread={unreadIds.has(c.id)}
+                isActive={activeIds.has(c.id)}
+                phoneLabel={color?.label}
+                phoneDot={color?.dot}
+                phoneBg={color?.bg}
+                phoneText={color?.text}
+                onClick={() => onSelect(c.id)}
+              />
+            );
+          })
         )}
       </div>
     </div>

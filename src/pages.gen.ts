@@ -16,8 +16,6 @@ import type { getConfig as File_FbDebug_getConfig } from './pages/fb-debug';
 // prettier-ignore
 import type { getConfig as File_Index_getConfig } from './pages/index';
 // prettier-ignore
-import type { getConfig as File_LinkWhatsappAccount_getConfig } from './pages/link-whatsapp-account';
-// prettier-ignore
 import type { getConfig as File_PrivacyPolicy_getConfig } from './pages/privacy-policy';
 
 // prettier-ignore
@@ -28,7 +26,6 @@ type Page =
 | ({ path: '/conversations' } & GetConfigResponse<typeof File_Conversations_getConfig>)
 | ({ path: '/fb-debug' } & GetConfigResponse<typeof File_FbDebug_getConfig>)
 | ({ path: '/' } & GetConfigResponse<typeof File_Index_getConfig>)
-| ({ path: '/link-whatsapp-account' } & GetConfigResponse<typeof File_LinkWhatsappAccount_getConfig>)
 | ({ path: '/privacy-policy' } & GetConfigResponse<typeof File_PrivacyPolicy_getConfig>);
 
 // prettier-ignore

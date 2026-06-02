@@ -1,10 +1,11 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { dbGetConversations, dbGetMessages, dbGetActiveConversationIds, supabase } from 'lib/supabase';
-import { type Conversation, type Message } from './chat-utils';
+import { dbGetConversations, dbGetMessages, dbGetActiveConversationIds, dbGetPhoneNumbers, supabase } from 'lib/supabase';
+import { type Conversation, type Message, type PhoneNumber } from './chat-utils';
 import { ConversationSidebar } from './conversation-sidebar';
 import { MessagePanel } from './message-panel';
+import { AccountsDrawer } from './accounts-drawer';
 
 export const ConversationsChat = () => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -15,6 +16,8 @@ export const ConversationsChat = () => {
   const [search, setSearch] = useState('');
   const [unreadIds, setUnreadIds] = useState<Set<string>>(new Set());
   const [activeIds, setActiveIds] = useState<Set<string>>(new Set());
+  const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumber[]>([]);
+  const [showAccountsDrawer, setShowAccountsDrawer] = useState(false);
 
   const selectedConversation = conversations.find((c) => c.id === selectedId) ?? null;
 
@@ -30,6 +33,7 @@ export const ConversationsChat = () => {
       setLoadingConversations(false);
     });
     dbGetActiveConversationIds().then(setActiveIds);
+    dbGetPhoneNumbers().then(({ data }) => setPhoneNumbers(data));
   }, []);
 
   // Reload conversations when the tab regains focus (catches missed inbound new conversations)
@@ -106,6 +110,8 @@ export const ConversationsChat = () => {
   }, [selectedId]);
 
   return (
+    <>
+    <AccountsDrawer open={showAccountsDrawer} onClose={() => setShowAccountsDrawer(false)} />
     <div className='flex h-[calc(100svh-5rem)] w-full overflow-hidden rounded-lg border border-gray-200 shadow-sm'>
       <ConversationSidebar
         conversations={conversations}
@@ -116,6 +122,8 @@ export const ConversationsChat = () => {
         search={search}
         onSearchChange={setSearch}
         onSelect={setSelectedId}
+        phoneNumbers={phoneNumbers}
+        onOpenAccounts={() => setShowAccountsDrawer(true)}
       />
       <MessagePanel
         conversation={selectedConversation}
@@ -125,6 +133,7 @@ export const ConversationsChat = () => {
         onMessageSent={onMessageSent}
       />
     </div>
+    </>  
   );
 };
 
