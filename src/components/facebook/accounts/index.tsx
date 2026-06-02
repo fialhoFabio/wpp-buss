@@ -189,6 +189,7 @@ export const WhatsappAccountsTable = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

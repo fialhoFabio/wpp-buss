@@ -31,11 +31,11 @@ const friendlyMetaError = (code?: number, subcode?: number, raw?: string): strin
   return raw ?? 'Erro desconhecido da API do Meta.';
 };
 
-const fbFetch = async (endpoint: string, options: RequestInit = {}): Promise<unknown> => {
+const fbFetch = async (endpoint: string, options: RequestInit = {}, token?: string): Promise<unknown> => {
   const res = await fetch(`${GRAPH_API_BASE}/${endpoint}`, {
     ...options,
     headers: {
-      Authorization: `Bearer ${getEnv('FACEBOOK_SYSTEM_USER_SECRET_TOKEN')}`,
+      Authorization: `Bearer ${token ?? getEnv('FACEBOOK_SYSTEM_USER_SECRET_TOKEN')}`,
       ...options.headers,
     },
   });
@@ -104,8 +104,8 @@ export const getWabaNumbers = async (waba_id: string): Promise<{ data: PhoneNumb
 // Webhook Subscription
 // ---------------------------------------------------------------------------
 
-export const subscribeWabaToApp = async (waba_id: string): Promise<void> => {
-  await fbFetch(`${waba_id}/subscribed_apps`, { method: 'POST' });
+export const subscribeWabaToApp = async (waba_id: string, token?: string): Promise<void> => {
+  await fbFetch(`${waba_id}/subscribed_apps`, { method: 'POST' }, token);
 };
 
 type SubscribedApp = {

@@ -1,70 +1,36 @@
 'use client';
-import { getWabaNumbers, subscribeWabaToApp, getWabaSubscribedApps } from 'lib/facebook';
+import { getWabaNumbers, subscribeWabaToApp, getWabaSubscribedApps, fbExchangeOAuthCode } from 'lib/facebook';
 import { dbSaveWhatsappAccount, dbSaveWhatsappNumber, dbUpdateWhatsappAccountStatus } from 'lib/supabase';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
+
+type SignupData = {
+  waba_id: string;
+  phone_number_id: string;
+  business_id: string;
+};
 
 export function FacebookEmbbedSignupButton() {
+  // The message event fires inside the popup (before it closes) — we just store the data.
+  // The FB.login callback fires when the popup closes and contains the code.
+  // Both arrive together; we coordinate via a ref.
+  const signupDataRef = useRef<SignupData | null>(null);
+
   useEffect(() => {
-    // Session logging message event listener
-    const handleMessage = async (event: MessageEvent) => {
+    const handleMessage = (event: MessageEvent) => {
       if (!event.origin.endsWith('facebook.com')) return;
       try {
-        const response = JSON.parse(event.data);
-        if (response.type !== 'WA_EMBEDDED_SIGNUP') return;
-
-        const { data } = response;
-        const wabaId: string = data.waba_id || '';
-
-        // Step 1+2: Save WABA and phone numbers (account starts as pending)
-        const { insertData: account, error: saveErr } = await dbSaveWhatsappAccount({
-          business_id: data.business_id,
-          waba_id: wabaId,
-          status: 'pending',
-        });
-        if (!account || saveErr) {
-          console.error('[Signup] Failed to save account:', saveErr);
-          return;
-        }
-
-        const nm = await getWabaNumbers(wabaId);
-        await Promise.all(nm.data.map(number =>
-          dbSaveWhatsappNumber({
-            whatsapp_account_id: account.id,
-            phone_number_id: number.id,
-            display_phone_number: number.display_phone_number,
-            verified_name: number.verified_name,
-            quality_rating: number.quality_rating,
-            platform_type: number.platform_type,
-          })
-        ));
-
-        // Step 3: Subscribe WABA webhook to this app
-        await subscribeWabaToApp(wabaId);
-
-        // Step 4: Validate subscription
-        const { data: subscribedApps } = await getWabaSubscribedApps(wabaId);
-        const appId = import.meta.env.WAKU_PUBLIC_FB_APP_ID;
-        const isSubscribed = subscribedApps.some(
-          app => app.whatsapp_business_api_data.id === appId,
-        );
-        if (!isSubscribed) {
-          console.error('[Signup] Webhook subscription not confirmed for WABA:', wabaId);
-          return;
-        }
-
-        // Step 5: Mark account as active
-        await dbUpdateWhatsappAccountStatus(account.id, 'active');
-        console.log('[Signup] Account active and webhook subscribed for WABA:', wabaId);
-      } catch (err) {
-        console.error('[Signup] Error during signup flow:', err);
-      }
+        const msg = JSON.parse(event.data) as { type?: string; data?: Record<string, string> };
+        if (msg.type !== 'WA_EMBEDDED_SIGNUP' || !msg.data) return;
+        signupDataRef.current = {
+          waba_id: msg.data['waba_id'] ?? '',
+          phone_number_id: msg.data['phone_number_id'] ?? '',
+          business_id: msg.data['business_id'] ?? '',
+        };
+      } catch { /* non-JSON message, ignore */ }
     };
 
     window.addEventListener('message', handleMessage);
-
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
+    return () => window.removeEventListener('message', handleMessage);
   }, []);
 
   function loginOnFacebook() {
@@ -77,8 +43,74 @@ export function FacebookEmbbedSignupButton() {
       }
       return;
     }
-      FB.login((res) => {
-        console.log('FB login: ', res);
+      FB.login(async (res) => {
+        const code = res.authResponse?.code;
+        if (!code) {
+          if (res.status !== 'connected') console.log('[Signup] Flow cancelled or failed:', res);
+          return;
+        }
+
+        const signup = signupDataRef.current;
+        signupDataRef.current = null;
+        if (!signup?.waba_id) {
+          console.error('[Signup] No WABA data received from message event');
+          return;
+        }
+        const { waba_id, business_id } = signup;
+
+        try {
+          // Step 1: Exchange code for customer business token (v4, TTL 30s)
+          const tokenResult = await fbExchangeOAuthCode(code);
+          if (!tokenResult.data?.access_token) {
+            console.error('[Signup] Token exchange failed:', tokenResult.error);
+            return;
+          }
+          const businessToken = tokenResult.data.access_token;
+
+          // Step 2: Save account as pending
+          const { insertData: account, error: saveErr } = await dbSaveWhatsappAccount({
+            business_id,
+            waba_id,
+            status: 'pending',
+          });
+          if (!account || saveErr) {
+            console.error('[Signup] Failed to save account:', saveErr);
+            return;
+          }
+
+          // Step 3: Fetch and save phone numbers
+          const nm = await getWabaNumbers(waba_id);
+          await Promise.all(nm.data.map(number =>
+            dbSaveWhatsappNumber({
+              whatsapp_account_id: account.id,
+              phone_number_id: number.id,
+              display_phone_number: number.display_phone_number,
+              verified_name: number.verified_name,
+              quality_rating: number.quality_rating,
+              platform_type: number.platform_type,
+            })
+          ));
+
+          // Step 4: Subscribe WABA webhook using business token (v4 requirement)
+          await subscribeWabaToApp(waba_id, businessToken);
+
+          // Step 5: Validate subscription
+          const { data: subscribedApps } = await getWabaSubscribedApps(waba_id);
+          const appId = import.meta.env.WAKU_PUBLIC_FB_APP_ID;
+          const isSubscribed = subscribedApps.some(
+            app => app.whatsapp_business_api_data.id === appId,
+          );
+          if (!isSubscribed) {
+            console.error('[Signup] Webhook subscription not confirmed for WABA:', waba_id);
+            return;
+          }
+
+          // Step 6: Mark account as active
+          await dbUpdateWhatsappAccountStatus(account.id, 'active');
+          console.log('[Signup] Account active and webhook subscribed for WABA:', waba_id);
+        } catch (err) {
+          console.error('[Signup] Error during signup flow:', err);
+        }
       }, {
         config_id: import.meta.env.WAKU_PUBLIC_FB_CONFIG_ID || '',
         response_type: 'code',
@@ -86,24 +118,16 @@ export function FacebookEmbbedSignupButton() {
         extras: {
           setup: {
             business: {
-              // Business portfolio data goes here
               name: 'Mdmed alerts',
               email: null,
               website: null,
               country: 'BR',
             },
-            preVerifiedPhone: {
-              // Pre-verified phone number IDs go here
-            },
-            phone: {
-              // Phone number profile data goes here
-            },
-            whatsAppBusinessAccount: {
-              // WABA IDs go here
-            }
+            preVerifiedPhone: {},
+            phone: {},
+            whatsAppBusinessAccount: {},
           },
         },
-        // scope: 'whatsapp_business_messaging,whatsapp_business_management',
       });
   }
   
