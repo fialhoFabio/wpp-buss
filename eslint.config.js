@@ -40,6 +40,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['dist/**', 'node_modules/**', '.waku/**'],
+    ignores: ['dist/**', 'node_modules/**', '.waku/**', 'src/types/database.types.ts', 'src/pages.gen.ts'],
   }
 );

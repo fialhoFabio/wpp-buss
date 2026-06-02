@@ -12,11 +12,11 @@ type Preset = { label: string; method: string; endpoint: string; body?: string; 
 const PRESETS: Preset[] = [
   { label: 'App subscriptions', method: 'GET', endpoint: `${APP_ID}/subscriptions`, tokenType: 'app' as const },
   { label: 'App info', method: 'GET', endpoint: `${APP_ID}?fields=id,name,link`, tokenType: 'app' as const },
-  { label: 'WABA subscribed apps', method: 'GET', endpoint: `{WABA_ID}/subscribed_apps`, tokenType: 'system_user' as const },
-  { label: 'Subscribe WABA to App', method: 'POST', endpoint: `{WABA_ID}/subscribed_apps`, tokenType: 'system_user' as const },
-  { label: 'WABA phone numbers', method: 'GET', endpoint: `{WABA_ID}/phone_numbers`, tokenType: 'system_user' as const },
-  { label: 'WABA info', method: 'GET', endpoint: `{WABA_ID}?fields=id,name,currency,timezone_id`, tokenType: 'system_user' as const },
-  { label: 'Phone number info', method: 'GET', endpoint: `{PHONE_NUMBER_ID}?fields=id,display_phone_number,verified_name,status,quality_rating,webhook_configuration`, tokenType: 'system_user' as const },
+  { label: 'WABA subscribed apps', method: 'GET', endpoint: '{WABA_ID}/subscribed_apps', tokenType: 'system_user' as const },
+  { label: 'Subscribe WABA to App', method: 'POST', endpoint: '{WABA_ID}/subscribed_apps', tokenType: 'system_user' as const },
+  { label: 'WABA phone numbers', method: 'GET', endpoint: '{WABA_ID}/phone_numbers', tokenType: 'system_user' as const },
+  { label: 'WABA info', method: 'GET', endpoint: '{WABA_ID}?fields=id,name,currency,timezone_id', tokenType: 'system_user' as const },
+  { label: 'Phone number info', method: 'GET', endpoint: '{PHONE_NUMBER_ID}?fields=id,display_phone_number,verified_name,status,quality_rating,webhook_configuration', tokenType: 'system_user' as const },
 ];
 
 const VARIABLE_LABELS: Record<string, string> = {

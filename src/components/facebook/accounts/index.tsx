@@ -8,7 +8,7 @@ import { CopyButton } from './copy-button';
 import { AccountRow } from './account-row';
 import { DebugWabaPanel } from './debug-waba-panel';
 import { useWhatsappAccounts } from './use-whatsapp-accounts';
-import { verifyWabaId } from 'lib/facebook';
+import { verifyWabaId, getWabaNumbers } from 'lib/facebook';
 import { isDebugUser as checkDebugUser } from 'lib/debug';
 import type { AccountWithVerification } from './types';
 
@@ -75,7 +75,6 @@ export const WhatsappAccountsTable = () => {
     // Mark loading
     setDebugAccounts(prev => prev.map(a => a.id === id ? { ...a, loadingNumbers: true } : a));
     try {
-      const { getWabaNumbers } = await import('lib/facebook');
       const response = await getWabaNumbers(account.waba_id);
       const phoneNumbers = response.data.map(n => ({
         id: n.id,

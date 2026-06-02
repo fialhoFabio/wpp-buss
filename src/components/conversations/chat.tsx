@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { dbGetConversations, dbGetMessages, dbGetActiveConversationIds, supabase } from 'lib/supabase';
 import { type Conversation, type Message } from './chat-utils';
 import { ConversationSidebar } from './conversation-sidebar';
@@ -101,6 +101,10 @@ export const ConversationsChat = () => {
     return () => { void supabase.removeChannel(channel); };
   }, []);
 
+  const onMessageSent = useCallback(() => {
+    if (selectedId) void dbGetMessages(selectedId).then(({ data }) => setMessages(data));
+  }, [selectedId]);
+
   return (
     <div className='flex h-[calc(100svh-5rem)] w-full overflow-hidden rounded-lg border border-gray-200 shadow-sm'>
       <ConversationSidebar
@@ -118,9 +122,7 @@ export const ConversationsChat = () => {
         messages={messages}
         loading={loadingMessages}
         isActive={selectedId !== null && activeIds.has(selectedId)}
-        onMessageSent={() => {
-          if (selectedId) void dbGetMessages(selectedId).then(({ data }) => setMessages(data));
-        }}
+        onMessageSent={onMessageSent}
       />
     </div>
   );

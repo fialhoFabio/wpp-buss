@@ -29,7 +29,7 @@ export default async function RootLayout({ children }: RootLayoutProps) {
             window.fbSDKError = null;
             window.fbAsyncInit = function() {
               try {
-                var appId = '${import.meta.env.WAKU_PUBLIC_FB_APP_ID}';
+                var appId = ${JSON.stringify(import.meta.env.WAKU_PUBLIC_FB_APP_ID ?? '')};
                 var version = 'v22.0';
                 console.info('[FB SDK] Initializing... appId=' + appId + ' version=' + version);
                 FB.init({
