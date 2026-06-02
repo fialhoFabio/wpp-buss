@@ -5,11 +5,9 @@ import { createPortal } from 'react-dom';
 import { FacebookEmbbedSignupButton } from 'components/facebook/embbed-signup-button';
 import { Icons } from 'components/facebook/accounts/icons';
 import { StatusBadge, VerificationBadge } from 'components/facebook/accounts/badges';
-import { DeleteConfirmation } from 'components/facebook/accounts/delete-confirmation';
 import { AddPhoneNumberModal } from 'components/facebook/accounts/add-phone-number-modal';
 import { VerifyPhoneNumberModal } from 'components/facebook/accounts/verify-phone-number-modal';
 import { RegisterPhoneNumberModal } from 'components/facebook/accounts/register-phone-number-modal';
-import { CopyButton } from 'components/facebook/accounts/copy-button';
 import { useWhatsappAccounts } from 'components/facebook/accounts/use-whatsapp-accounts';
 import type { AccountWithVerification, PhoneNumber } from 'components/facebook/accounts/types';
 
@@ -123,24 +121,59 @@ const AccountCard = ({
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [verifyingNumber, setVerifyingNumber] = useState<PhoneNumber | undefined>();
   const [registeringNumber, setRegisteringNumber] = useState<PhoneNumber | undefined>();
 
   const handleDelete = async () => {
     setIsDeleting(true);
+    setConfirmDelete(false);
     await onDelete(account.id);
     setIsDeleting(false);
   };
 
   return (
-    <div className='overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm'>
-      <div className='flex items-center gap-3 px-4 py-4'>
-        {/* Clickable toggle area */}
+    <div className='relative overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm'>
+      {/* Corner actions */}
+      <div className='absolute right-2 top-2 z-10 flex items-center gap-0.5'>
+        {isDeleting ? (
+          <Icons.Spinner className='h-4 w-4 text-red-400' />
+        ) : confirmDelete ? (
+          <button
+            onClick={handleDelete}
+            title='Confirmar exclusão'
+            className='flex h-7 w-7 items-center justify-center rounded-md bg-red-50 text-red-600 hover:bg-red-100'
+          >
+            <Icons.Check className='h-3.5 w-3.5' />
+          </button>
+        ) : (
+          <button
+            onClick={() => {
+              setConfirmDelete(true);
+              setTimeout(() => setConfirmDelete(false), 3000);
+            }}
+            title='Excluir conta'
+            className='flex h-7 w-7 items-center justify-center rounded-md text-gray-300 hover:bg-red-50 hover:text-red-500'
+          >
+            <Icons.Trash className='h-3.5 w-3.5' />
+          </button>
+        )}
         <button
           onClick={() => setCollapsed(c => !c)}
-          className='flex flex-1 items-start gap-3 text-left'
+          aria-label={collapsed ? 'Expandir' : 'Recolher'}
+          className='flex h-7 w-7 items-center justify-center rounded-md text-gray-300 hover:bg-gray-100 hover:text-gray-500'
         >
+          <Icons.ChevronRight className={`h-4 w-4 transition-transform duration-200 ${collapsed ? '' : 'rotate-90'}`} />
+        </button>
+      </div>
+
+      {/* Clickable toggle area */}
+      <button
+        onClick={() => setCollapsed(c => !c)}
+        className='w-full px-4 py-4 pr-20 text-left'
+      >
+        <div className='flex items-start gap-3'>
           <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-50 text-blue-600'>
             <svg className='h-5 w-5' fill='currentColor' viewBox='0 0 20 20'>
               <path
@@ -159,25 +192,24 @@ const AccountCard = ({
               <VerificationBadge status={account.verificationStatus} />
             </div>
             {account.waba_id && (
-              <div className='mt-2 flex items-center gap-1.5'>
-                <span className='text-[10px] font-semibold uppercase tracking-wide text-gray-400'>WABA ID</span>
-                <CopyButton text={account.waba_id} />
+              <div className='mt-1.5 flex items-center gap-1.5'>
+                <span className='text-[9px] font-bold uppercase tracking-wider text-gray-300'>WABA</span>
+                <code className='text-[10px] font-mono text-gray-500'>{account.waba_id}</code>
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    if (account.waba_id) void navigator.clipboard.writeText(account.waba_id);
+                  }}
+                  title='Copiar WABA ID'
+                  className='text-gray-300 hover:text-gray-500'
+                >
+                  <Icons.Copy className='h-3 w-3' />
+                </button>
               </div>
             )}
           </div>
-          <Icons.ChevronRight className={`mt-0.5 h-4 w-4 shrink-0 text-gray-400 transition-transform duration-200 ${collapsed ? '' : 'rotate-90'}`} />
-        </button>
-
-        {/* Actions */}
-        {isDeleting ? (
-          <span className='flex items-center gap-1.5 text-xs text-red-500'>
-            <Icons.Spinner className='h-3.5 w-3.5 text-red-500' />
-            Excluindo
-          </span>
-        ) : (
-          <DeleteConfirmation onDelete={handleDelete} />
-        )}
-      </div>
+        </div>
+      </button>
 
       {!collapsed && (
         <div className='border-t border-gray-100 bg-gray-50/60 px-4 py-3'>
