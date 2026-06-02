@@ -43,7 +43,8 @@ export function FacebookEmbbedSignupButton() {
       }
       return;
     }
-      FB.login(async (res) => {
+      FB.login((res) => {
+        void (async () => {
         const code = res.authResponse?.code;
         if (!code) {
           if (res.status !== 'connected') console.log('[Signup] Flow cancelled or failed:', res);
@@ -111,6 +112,7 @@ export function FacebookEmbbedSignupButton() {
         } catch (err) {
           console.error('[Signup] Error during signup flow:', err);
         }
+        })();
       }, {
         config_id: import.meta.env.WAKU_PUBLIC_FB_CONFIG_ID || '',
         response_type: 'code',
