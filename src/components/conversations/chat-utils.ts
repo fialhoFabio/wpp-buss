@@ -1,7 +1,10 @@
 import type { Database } from 'types/database.types';
 
 export type LastMessagePreview = Pick<Database['public']['Tables']['wpp_messages']['Row'], 'message_content' | 'message_type' | 'timestamp'>;
-export type Conversation = Database['public']['Tables']['wpp_conversations']['Row'] & { wpp_messages: LastMessagePreview[] };
+export type Conversation = Database['public']['Tables']['wpp_conversations']['Row'] & {
+  wpp_messages: LastMessagePreview[];
+  isDebugLoaded?: boolean;
+};
 export type Message = Database['public']['Tables']['wpp_messages']['Row'];
 export type PendingMessage = { tempId: string; text: string };
 export type PhoneNumber = Database['public']['Tables']['whatsapp_phone_numbers']['Row'];

@@ -4,14 +4,17 @@ import { useEffect, useState, useCallback } from 'react';
 import { dbGetWhatsappAccounts, dbDeleteWhatsappAccount, dbUpdateWhatsappAccountName, dbSaveWhatsappNumber, dbRemoveStalePhoneNumbers } from 'lib/supabase';
 import { verifyWabaId, getWabaNumbers } from 'lib/facebook';
 import type { AccountWithVerification } from './types';
+import { useAuth } from 'lib/useAuth';
 
 export const useWhatsappAccounts = () => {
+  const { user, loading: authLoading } = useAuth();
   const [accounts, setAccounts] = useState<AccountWithVerification[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const loadAccounts = useCallback(async () => {
-    const { data, error } = await dbGetWhatsappAccounts();
+    if (authLoading) return;
+    const { data, error } = await dbGetWhatsappAccounts(user?.id);
     if (error || !data) {
       setLoading(false);
       setIsRefreshing(false);
@@ -87,7 +90,7 @@ export const useWhatsappAccounts = () => {
         }
       }
     });
-  }, []);
+  }, [user?.id, authLoading]);
 
   useEffect(() => {
     loadAccounts();

@@ -57,10 +57,20 @@ const ConversationItem = ({
   return (
     <button
       onClick={onClick}
-      className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gray-100 ${isSelected ? 'bg-gray-100' : ''}`}
+      className={`flex w-full items-center gap-3 py-3 text-left transition-colors hover:bg-gray-100 ${
+        isSelected ? 'bg-gray-100' : ''
+      } ${
+        conversation.isDebugLoaded
+          ? 'border-l-4 border-orange-500 pl-3 pr-4 bg-orange-50/20 hover:bg-orange-50/40'
+          : 'px-4'
+      }`}
     >
       <div className='relative flex-shrink-0'>
-        <div className='flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-lg font-semibold text-white'>
+        <div
+          className={`flex h-12 w-12 items-center justify-center rounded-full text-lg font-semibold text-white ${
+            conversation.isDebugLoaded ? 'bg-orange-500' : 'bg-emerald-500'
+          }`}
+        >
           {getInitials(conversation.contact_name, conversation.contact_phone)}
         </div>
         {hasUnread && <UnreadDot />}
@@ -74,6 +84,11 @@ const ConversationItem = ({
             {conversation.contact_name || conversation.contact_phone}
           </span>
           <div className='flex flex-shrink-0 items-center gap-1'>
+            {conversation.isDebugLoaded && (
+              <span className='flex-shrink-0 rounded bg-orange-100 px-1 py-0.5 text-[9px] font-bold text-orange-700 uppercase tracking-wider'>
+                Debug
+              </span>
+            )}
             <WindowPill open={isActive} />
             <span className='text-xs text-gray-500'>
               {formatConversationDate(conversation.last_message_at)}
@@ -107,9 +122,13 @@ const ConversationItem = ({
 const PhoneNumbersPanel = ({
   phones,
   onOpenAccounts,
+  isDebugUser,
+  onOpenDebug,
 }: {
   phones: PhoneNumber[];
   onOpenAccounts: () => void;
+  isDebugUser?: boolean | undefined;
+  onOpenDebug?: (() => void) | undefined;
 }) => {
   const colorMap = getPhoneColorMap(phones);
   if (phones.length === 0) {
@@ -119,6 +138,60 @@ const PhoneNumbersPanel = ({
           <span className='text-xs font-semibold uppercase tracking-wide text-gray-400'>
             Números
           </span>
+          <div className='flex items-center gap-1.5'>
+            {isDebugUser && onOpenDebug && (
+              <button
+                onClick={onOpenDebug}
+                className='flex items-center gap-1 rounded-md bg-orange-500 px-2 py-1 text-xs font-semibold text-white hover:bg-orange-600 transition-colors'
+              >
+                🛠 Debug
+              </button>
+            )}
+            <button
+              onClick={onOpenAccounts}
+              className='flex items-center gap-1 rounded-md bg-emerald-500 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-600'
+            >
+              <svg
+                className='h-3.5 w-3.5'
+                fill='none'
+                viewBox='0 0 24 24'
+                stroke='currentColor'
+                strokeWidth={2}
+              >
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
+                />
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'
+                />
+              </svg>
+              Gerenciar contas
+            </button>
+          </div>
+        </div>
+        <p className='mt-2 text-xs text-gray-400'>Nenhum número vinculado.</p>
+      </div>
+    );
+  }
+  return (
+    <div className='border-b border-gray-200 px-4 py-3'>
+      <div className='flex items-center justify-between'>
+        <span className='text-xs font-semibold uppercase tracking-wide text-gray-400'>
+          Números
+        </span>
+        <div className='flex items-center gap-1.5'>
+          {isDebugUser && onOpenDebug && (
+            <button
+              onClick={onOpenDebug}
+              className='flex items-center gap-1 rounded-md bg-orange-500 px-2.5 py-1 text-xs font-semibold text-white hover:bg-orange-600 transition-colors'
+            >
+              🛠 Debug
+            </button>
+          )}
           <button
             onClick={onOpenAccounts}
             className='flex items-center gap-1 rounded-md bg-emerald-500 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-600'
@@ -144,40 +217,6 @@ const PhoneNumbersPanel = ({
             Gerenciar contas
           </button>
         </div>
-        <p className='mt-2 text-xs text-gray-400'>Nenhum número vinculado.</p>
-      </div>
-    );
-  }
-  return (
-    <div className='border-b border-gray-200 px-4 py-3'>
-      <div className='flex items-center justify-between'>
-        <span className='text-xs font-semibold uppercase tracking-wide text-gray-400'>
-          Números
-        </span>
-        <button
-          onClick={onOpenAccounts}
-          className='flex items-center gap-1 rounded-md bg-emerald-500 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-600'
-        >
-          <svg
-            className='h-3.5 w-3.5'
-            fill='none'
-            viewBox='0 0 24 24'
-            stroke='currentColor'
-            strokeWidth={2}
-          >
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              d='M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z'
-            />
-            <path
-              strokeLinecap='round'
-              strokeLinejoin='round'
-              d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'
-            />
-          </svg>
-          Gerenciar contas
-        </button>
       </div>
       <ul className='mt-2 space-y-1'>
         {phones.map((p) => {
@@ -214,6 +253,8 @@ export const ConversationSidebar = ({
   onSelect,
   phoneNumbers,
   onOpenAccounts,
+  isDebugUser,
+  onOpenDebug,
 }: {
   conversations: Conversation[];
   loading: boolean;
@@ -225,6 +266,8 @@ export const ConversationSidebar = ({
   onSelect: (id: string) => void;
   phoneNumbers: PhoneNumber[];
   onOpenAccounts: () => void;
+  isDebugUser?: boolean | undefined;
+  onOpenDebug?: (() => void) | undefined;
 }) => {
   const colorMap = getPhoneColorMap(phoneNumbers);
 
@@ -241,6 +284,8 @@ export const ConversationSidebar = ({
       <PhoneNumbersPanel
         phones={phoneNumbers}
         onOpenAccounts={onOpenAccounts}
+        isDebugUser={isDebugUser}
+        onOpenDebug={onOpenDebug}
       />
       <div className='border-b border-gray-200 p-3'>
         <div className='relative'>

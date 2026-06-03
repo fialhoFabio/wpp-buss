@@ -65,35 +65,60 @@ export const dbRemoveStalePhoneNumbers = async (whatsapp_account_id: string, act
   return { error };
 };
 
-export const dbGetWhatsappAccounts = async () => {
-  const { data, error } = await supabase
+export const dbGetWhatsappAccounts = async (ownerId?: string) => {
+  let query = supabase
     .from('whatsapp_accounts')
     .select('*');
+
+  if (ownerId) {
+    query = query.eq('owner_id', ownerId);
+  }
+
+  const { data, error } = await query;
   if (error) console.error('Error fetching WhatsApp accounts:', error);
   return { data: data ?? [], error };
 };
 
-export const dbGetActiveConversationIds = async (): Promise<Set<string>> => {
-  const { data } = await supabase
+export const dbGetActiveConversationIds = async (ownerId?: string): Promise<Set<string>> => {
+  let query = supabase
     .from('wpp_active_conversations')
     .select('id')
     .eq('is_active', true);
+
+  if (ownerId) {
+    query = query.eq('owner_id', ownerId);
+  }
+
+  const { data } = await query;
   return new Set((data ?? []).map((r) => r.id).filter((id): id is string => id !== null));
 };
 
-export const dbGetPhoneNumbers = async () => {
-  const { data, error } = await supabase
+export const dbGetPhoneNumbers = async (ownerId?: string) => {
+  let query = supabase
     .from('whatsapp_phone_numbers')
-    .select('*')
+    .select('*, whatsapp_accounts!inner(owner_id)')
     .order('created_at', { ascending: true });
+
+  if (ownerId) {
+    query = query.eq('whatsapp_accounts.owner_id', ownerId);
+  }
+
+  const { data, error } = await query;
   if (error) console.error('Error fetching phone numbers:', error);
-  return { data: data ?? [], error };
+  const cleanData = (data ?? []).map(({ whatsapp_accounts, ...rest }) => rest);
+  return { data: cleanData, error };
 };
 
-export const dbGetConversations = async () => {
-  const { data, error } = await supabase
+export const dbGetConversations = async (ownerId?: string) => {
+  let query = supabase
     .from('wpp_conversations')
-    .select('*, wpp_messages(message_content, message_type, timestamp)')
+    .select('*, wpp_messages(message_content, message_type, timestamp)');
+
+  if (ownerId) {
+    query = query.eq('owner_id', ownerId);
+  }
+
+  const { data, error } = await query
     .order('last_message_at', { ascending: false })
     .order('timestamp', { ascending: false, foreignTable: 'wpp_messages' })
     .limit(1, { foreignTable: 'wpp_messages' });
@@ -163,5 +188,53 @@ export const dbGetApiLogs = async ({
 
   const { data, error } = await query;
   if (error) console.error('Error fetching api_logs:', error);
+  return { data: data ?? [], error };
+};
+
+export const dbGetConversationWithMessages = async (conversationId: string) => {
+  const { data, error } = await supabase
+    .from('wpp_conversations')
+    .select('*, wpp_messages(message_content, message_type, timestamp)')
+    .eq('id', conversationId)
+    .order('timestamp', { ascending: false, foreignTable: 'wpp_messages' })
+    .limit(1, { foreignTable: 'wpp_messages' })
+    .maybeSingle();
+  return { data, error };
+};
+
+export const dbSearchProfiles = async (query: string, isUuid: boolean) => {
+  if (isUuid) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, name')
+      .eq('id', query);
+    return { data: data ?? [], error };
+  } else {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('id, name')
+      .ilike('name', `%${query}%`);
+    return { data: data ?? [], error };
+  }
+};
+
+export const dbGetWhatsappAccountsWithPhoneNumbers = async (
+  profileIds: string[],
+  isUuid: boolean,
+  query: string
+) => {
+  let accountsQuery = supabase
+    .from('whatsapp_accounts')
+    .select('*, whatsapp_phone_numbers(*)');
+
+  if (profileIds.length > 0) {
+    accountsQuery = accountsQuery.in('owner_id', profileIds);
+  } else if (isUuid) {
+    accountsQuery = accountsQuery.eq('owner_id', query);
+  } else {
+    return { data: [], error: null };
+  }
+
+  const { data, error } = await accountsQuery;
   return { data: data ?? [], error };
 };

@@ -6,8 +6,12 @@ import { type Conversation, type Message, type PhoneNumber } from './chat-utils'
 import { ConversationSidebar } from './conversation-sidebar';
 import { MessagePanel } from './message-panel';
 import { AccountsDrawer } from './accounts-drawer';
+import { ChatDebugDrawer } from './chat-debug-drawer';
+import { useAuth } from 'lib/useAuth';
+import { isDebugUser as checkDebugUser } from 'lib/debug';
 
 export const ConversationsChat = () => {
+  const { user, loading: authLoading } = useAuth();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loadingConversations, setLoadingConversations] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -18,6 +22,9 @@ export const ConversationsChat = () => {
   const [activeIds, setActiveIds] = useState<Set<string>>(new Set());
   const [phoneNumbers, setPhoneNumbers] = useState<PhoneNumber[]>([]);
   const [showAccountsDrawer, setShowAccountsDrawer] = useState(false);
+  const [showDebugDrawer, setShowDebugDrawer] = useState(false);
+
+  const isDebugUser = !authLoading && checkDebugUser(user?.id);
 
   const selectedConversation = conversations.find((c) => c.id === selectedId) ?? null;
 
@@ -28,25 +35,26 @@ export const ConversationsChat = () => {
   }, []);
 
   useEffect(() => {
-    dbGetConversations().then(({ data }) => {
+    if (authLoading) return;
+    dbGetConversations(user?.id).then(({ data }) => {
       setConversations(data);
       setLoadingConversations(false);
     });
-    dbGetActiveConversationIds().then(setActiveIds);
-    dbGetPhoneNumbers().then(({ data }) => setPhoneNumbers(data));
-  }, []);
+    dbGetActiveConversationIds(user?.id).then(setActiveIds);
+    dbGetPhoneNumbers(user?.id).then(({ data }) => setPhoneNumbers(data));
+  }, [user, authLoading]);
 
   // Reload conversations when the tab regains focus (catches missed inbound new conversations)
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        dbGetConversations().then(({ data }) => setConversations(data));
-        dbGetActiveConversationIds().then(setActiveIds);
+        dbGetConversations(user?.id).then(({ data }) => setConversations(data));
+        dbGetActiveConversationIds(user?.id).then(setActiveIds);
       }
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -76,8 +84,8 @@ export const ConversationsChat = () => {
       supabase
         .channel(`wpp:conversation:${c.id}:messages`, { config: { private: true } })
         .on('broadcast', { event: 'INSERT' }, () => {
-          dbGetConversations().then(({ data }) => setConversations(data));
-          dbGetActiveConversationIds().then(setActiveIds);
+          dbGetConversations(user?.id).then(({ data }) => setConversations(data));
+          dbGetActiveConversationIds(user?.id).then(setActiveIds);
           setSelectedId((currentId) => {
             if (currentId === c.id) {
               dbGetMessages(c.id).then(({ data }) => setMessages(data));
@@ -91,18 +99,29 @@ export const ConversationsChat = () => {
     );
     return () => { channels.forEach((ch) => supabase.removeChannel(ch)); };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [conversations.length]);
+  }, [conversations.length, user?.id]);
 
   // Subscribe to new conversations channel so first-contact inbounds appear without F5
   useEffect(() => {
     const channel = supabase
       .channel('wpp:conversations', { config: { private: true } })
       .on('broadcast', { event: 'INSERT' }, () => {
-        dbGetConversations().then(({ data }) => setConversations(data));
-        dbGetActiveConversationIds().then(setActiveIds);
+        dbGetConversations(user?.id).then(({ data }) => setConversations(data));
+        dbGetActiveConversationIds(user?.id).then(setActiveIds);
       })
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
+  }, [user?.id]);
+
+  const handleLoadConversation = useCallback((newConv: Conversation) => {
+    setConversations((prev) => {
+      const exists = prev.some((c) => c.id === newConv.id);
+      if (exists) {
+        return prev.map((c) => (c.id === newConv.id ? { ...c, isDebugLoaded: true } : c));
+      }
+      return [{ ...newConv, isDebugLoaded: true }, ...prev];
+    });
+    setSelectedId(newConv.id);
   }, []);
 
   const onMessageSent = useCallback(() => {
@@ -112,6 +131,13 @@ export const ConversationsChat = () => {
   return (
     <>
     <AccountsDrawer open={showAccountsDrawer} onClose={() => setShowAccountsDrawer(false)} />
+    {isDebugUser && (
+      <ChatDebugDrawer
+        open={showDebugDrawer}
+        onClose={() => setShowDebugDrawer(false)}
+        onLoadConversation={handleLoadConversation}
+      />
+    )}
     <div className='flex h-[calc(100svh-5rem)] w-full overflow-hidden rounded-lg border border-gray-200 shadow-sm'>
       <ConversationSidebar
         conversations={conversations}
@@ -124,6 +150,8 @@ export const ConversationsChat = () => {
         onSelect={setSelectedId}
         phoneNumbers={phoneNumbers}
         onOpenAccounts={() => setShowAccountsDrawer(true)}
+        isDebugUser={isDebugUser}
+        onOpenDebug={() => setShowDebugDrawer(true)}
       />
       <MessagePanel
         conversation={selectedConversation}
